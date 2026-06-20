@@ -17,6 +17,10 @@ export class AdminComponent implements OnInit {
   sareesList = signal<Saree[]>([]);
   loadingList = signal(true);
 
+  // Edit State
+  editingSareeId = signal<number | null>(null);
+  existingImages = signal<string[]>([]);
+
   // Upload Form Fields
   name = '';
   price: number | null = null;
@@ -97,7 +101,8 @@ export class AdminComponent implements OnInit {
 
   // Form Submission
   onUploadSaree(form: any) {
-    if (this.selectedFiles.length === 0) {
+    // If not editing, we require at least one photo.
+    if (!this.editingSareeId() && this.selectedFiles.length === 0) {
       this.errorMessage.set('Please upload at least one image.');
       return;
     }
@@ -124,20 +129,71 @@ export class AdminComponent implements OnInit {
       formData.append('files', file);
     }
 
-    this.sareeService.createSaree(formData).subscribe({
-      next: () => {
-        this.successMessage.set('Saree uploaded successfully and images optimized!');
-        this.resetForm(form);
-        this.fetchAdminSarees(); // Refresh list
-        this.submitting.set(false);
-      },
-      error: (err) => {
-        console.error('Error uploading saree:', err);
-        const msg = err.error?.detail || 'An error occurred while uploading. Please check inputs.';
-        this.errorMessage.set(msg);
-        this.submitting.set(false);
-      }
-    });
+    if (this.editingSareeId()) {
+      // Edit/Update flow
+      this.sareeService.updateSaree(this.editingSareeId()!, formData).subscribe({
+        next: () => {
+          this.successMessage.set('Saree updated successfully!');
+          this.cancelEdit(form);
+          this.fetchAdminSarees(); // Refresh list
+          this.submitting.set(false);
+        },
+        error: (err) => {
+          console.error('Error updating saree:', err);
+          const msg = err.error?.detail || 'An error occurred while updating. Please check inputs.';
+          this.errorMessage.set(msg);
+          this.submitting.set(false);
+        }
+      });
+    } else {
+      // Create/Upload flow
+      this.sareeService.createSaree(formData).subscribe({
+        next: () => {
+          this.successMessage.set('Saree uploaded successfully and images optimized!');
+          this.resetForm(form);
+          this.fetchAdminSarees(); // Refresh list
+          this.submitting.set(false);
+        },
+        error: (err) => {
+          console.error('Error uploading saree:', err);
+          const msg = err.error?.detail || 'An error occurred while uploading. Please check inputs.';
+          this.errorMessage.set(msg);
+          this.submitting.set(false);
+        }
+      });
+    }
+  }
+
+  onEditSaree(saree: Saree) {
+    this.successMessage.set('');
+    this.errorMessage.set('');
+
+    // Toggle edit states
+    this.editingSareeId.set(saree.id);
+    this.existingImages.set(saree.images.map(img => img.image_url));
+
+    // Refill fields
+    this.name = saree.name;
+    this.price = saree.price;
+    this.description = saree.description;
+    this.length = saree.length;
+    this.blouse = saree.blouse;
+    this.deliveryDuration = saree.delivery_duration;
+    this.work = saree.work;
+    this.quality = saree.quality;
+    this.highlightsList.set([...saree.highlights]);
+
+    // Clear local file selections
+    this.clearPreviews();
+
+    // Scroll form panel smoothly to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancelEdit(form: any) {
+    this.editingSareeId.set(null);
+    this.existingImages.set([]);
+    this.resetForm(form);
   }
 
   onDeleteSaree(sareeId: number) {
@@ -169,4 +225,5 @@ export class AdminComponent implements OnInit {
     this.newHighlightInput = '';
     this.clearPreviews();
   }
+
 }

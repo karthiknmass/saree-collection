@@ -129,7 +129,89 @@ async def create_saree(
     db.refresh(db_saree)
     return db_saree
 
+@router.put("/admin/sarees/{saree_id}", response_model=schemas.SareeResponse)
+async def update_saree(
+    saree_id: int,
+    name: str = Form(...),
+    price: float = Form(...),
+    description: Optional[str] = Form(None),
+    length: Optional[str] = Form(None),
+    blouse: Optional[str] = Form(None),
+    delivery_duration: Optional[str] = Form(None),
+    work: Optional[str] = Form(None),
+    quality: Optional[str] = Form(None),
+    highlights: Optional[str] = Form(None),
+    files: Optional[List[UploadFile]] = File(None),
+    db: Session = Depends(get_db),
+    admin: str = Depends(auth.get_current_admin)
+):
+    """
+    Admin endpoint to update an existing saree details and optionally override photos.
+    """
+    db_saree = crud.get_saree(db, saree_id=saree_id)
+    if not db_saree:
+        raise HTTPException(status_code=404, detail="Saree not found")
+
+    # 1. Parse highlights
+    highlights_list = []
+    if highlights:
+        try:
+            highlights_list = json.loads(highlights)
+            if not isinstance(highlights_list, list):
+                highlights_list = [str(highlights_list)]
+        except json.JSONDecodeError:
+            # Fallback to comma separated
+            highlights_list = [h.strip() for h in highlights.split(",") if h.strip()]
+
+    # 2. Update Saree fields in DB
+    saree_data = schemas.SareeCreate(
+        name=name,
+        price=price,
+        description=description,
+        length=length,
+        blouse=blouse,
+        delivery_duration=delivery_duration,
+        highlights=highlights_list,
+        work=work,
+        quality=quality
+    )
+    crud.update_saree(db, db_saree=db_saree, saree=saree_data)
+
+    # 3. Process new image files if uploaded (replaces old ones)
+    # Check if files is not empty and has actual filenames
+    if files and len(files) > 0 and any(f.filename for f in files):
+        # Delete old physical files
+        for img in db_saree.images:
+            filename = os.path.basename(img.image_url)
+            file_path = os.path.join(settings.UPLOAD_DIR, filename)
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    print(f"Error removing file {file_path} during update: {e}")
+
+        # Delete old DB image records
+        crud.delete_saree_images(db, saree_id=saree_id)
+
+        # Process and optimize new files
+        primary_set = False
+        for file in files:
+            content = await file.read()
+            try:
+                image_url = utils.save_and_optimize_image(content, settings.UPLOAD_DIR)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid image format: {str(e)}")
+
+            is_primary = not primary_set
+            crud.add_saree_image(db, saree_id=saree_id, image_url=image_url, is_primary=is_primary)
+            primary_set = True
+
+    # Refresh DB session to return saree with images relationship populated
+    db.refresh(db_saree)
+    return db_saree
+
 @router.delete("/admin/sarees/{saree_id}", status_code=status.HTTP_204_NO_CONTENT)
+
 def delete_saree(
     saree_id: int,
     db: Session = Depends(get_db),

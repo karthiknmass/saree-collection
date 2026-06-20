@@ -66,8 +66,22 @@ export class SareeDetailsComponent implements OnInit {
     }
   }
 
+  onMouseMove(event: MouseEvent) {
+    const wrapper = event.currentTarget as HTMLElement;
+    const rect = wrapper.getBoundingClientRect();
+    
+    // Calculate mouse position relative to wrapper element as a percentage
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    
+    // Set custom CSS variables for smooth zoom panning
+    wrapper.style.setProperty('--zoom-x', `${x}%`);
+    wrapper.style.setProperty('--zoom-y', `${y}%`);
+  }
+
   onImageError(event: Event) {
     const img = event.target as HTMLImageElement;
     img.src = 'assets/placeholder-saree.jpg';
   }
 }
+

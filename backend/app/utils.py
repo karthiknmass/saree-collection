@@ -34,13 +34,13 @@ def save_and_optimize_image(file_data: bytes, upload_dir: str) -> str:
             if image.mode != "RGB":
                 image = image.convert("RGB")
                 
-        # Resize if width or height exceeds 1600px
-        max_dimension = 1600
+        # Resize if width or height exceeds 2560px (2K/4K high clarity)
+        max_dimension = 2560
         if image.width > max_dimension or image.height > max_dimension:
             image.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
             
-        # Save image as WEBP with 80% quality (great trade-off of quality and file size)
-        image.save(dest_path, "WEBP", quality=80)
+        # Save image as WEBP with 95% quality (excellent clarity, minimal artifacting)
+        image.save(dest_path, "WEBP", quality=95)
         
         # Return web-accessible relative path
         return f"/static/uploads/{unique_filename}"

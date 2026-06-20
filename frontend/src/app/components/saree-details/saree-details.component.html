@@ -18,7 +18,7 @@
     
     <!-- Left Column: Gallery -->
     <div class="gallery-column">
-      <div class="main-image-wrapper">
+      <div class="main-image-wrapper" (mousemove)="onMouseMove($event)">
         <img [src]="saree()!.images.length > 0 ? 'http://localhost:8000' + saree()!.images[activeImageIndex()].image_url : 'assets/placeholder-saree.jpg'" 
              [alt]="saree()!.name" 
              (error)="onImageError($event)"

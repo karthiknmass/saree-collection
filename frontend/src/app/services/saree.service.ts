@@ -57,4 +57,10 @@ export class SareeService {
     const headers = { 'Authorization': `Bearer ${this.authService.token()}` };
     return this.http.delete<void>(`${this.apiUrl}/admin/sarees/${id}`, { headers });
   }
+
+  updateSaree(id: number, formData: FormData): Observable<Saree> {
+    const headers = { 'Authorization': `Bearer ${this.authService.token()}` };
+    return this.http.put<Saree>(`${this.apiUrl}/admin/sarees/${id}`, formData, { headers });
+  }
 }
+

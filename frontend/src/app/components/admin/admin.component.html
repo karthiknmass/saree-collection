@@ -7,7 +7,8 @@
   <div class="admin-layout">
     <!-- Left Panel: Upload Form -->
     <div class="form-panel">
-      <h2>Upload New Saree</h2>
+      <h2>{{ editingSareeId() ? 'Edit Saree Details' : 'Upload New Saree' }}</h2>
+
       
       <!-- Notifications -->
       <div *ngIf="successMessage()" class="alert alert-success">
@@ -83,17 +84,19 @@
 
         <!-- Multiple Images Upload Section -->
         <div class="image-uploader">
-          <label class="form-label">Saree Photos * (Upload multiple)</label>
+          <label class="form-label">
+            Saree Photos {{ editingSareeId() ? '(Optional - Keeps current photos if empty)' : '*' }}
+          </label>
           <div class="upload-dropzone">
             <i class="fa-solid fa-cloud-arrow-up cloud-icon"></i>
             <p>Click here or select files to upload saree images</p>
             <input type="file" multiple accept="image/*" (change)="onFileSelect($event)" class="file-input-overlay" aria-label="Upload files">
           </div>
 
-          <!-- File Previews Grid -->
+          <!-- File Previews Grid (New selections) -->
           <div class="previews-section" *ngIf="imagePreviews().length > 0">
             <div class="previews-header">
-              <span>Selected Images ({{ imagePreviews().length }})</span>
+              <span>New Selected Images ({{ imagePreviews().length }})</span>
               <button type="button" (click)="clearPreviews()" class="btn-clear-previews">Clear All</button>
             </div>
             <div class="previews-grid">
@@ -102,12 +105,31 @@
               </div>
             </div>
           </div>
+
+          <!-- Existing Images (Show only when editing and if no new files selected) -->
+          <div class="previews-section existing-images-panel" *ngIf="editingSareeId() && existingImages().length > 0 && selectedFiles.length === 0">
+            <div class="previews-header">
+              <span>Currently Uploaded Photos (Will remain unchanged unless new photos are uploaded)</span>
+            </div>
+            <div class="previews-grid">
+              <div *ngFor="let url of existingImages()" class="preview-box">
+                <img [src]="'http://localhost:8000' + url" alt="Existing Saree Photo" class="preview-img">
+              </div>
+            </div>
+          </div>
         </div>
 
-        <button type="submit" [disabled]="!uploadForm.form.valid || submitting()" class="btn btn-accent upload-submit-btn" [class.btn-disabled]="!uploadForm.form.valid || submitting()">
-          <span *ngIf="submitting()"><i class="fa-solid fa-spinner fa-spin"></i> Processing & Optimizing...</span>
-          <span *ngIf="!submitting()">Upload Saree Collection</span>
-        </button>
+        <div class="form-actions-row">
+          <button type="submit" [disabled]="!uploadForm.form.valid || submitting()" class="btn btn-accent upload-submit-btn" [class.btn-disabled]="!uploadForm.form.valid || submitting()">
+            <span *ngIf="submitting()"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</span>
+            <span *ngIf="!submitting()">{{ editingSareeId() ? 'Update Saree Details' : 'Upload Saree Collection' }}</span>
+          </button>
+          
+          <button type="button" *ngIf="editingSareeId()" (click)="cancelEdit(uploadForm)" class="btn btn-secondary cancel-edit-btn">
+            Cancel Edit
+          </button>
+        </div>
+
       </form>
     </div>
 
@@ -138,9 +160,15 @@
                 <span class="inv-tag" *ngIf="saree.quality">{{ saree.quality }}</span>
                 <span class="inv-tag" *ngIf="saree.work">{{ saree.work }}</span>
               </div>
-              <button (click)="onDeleteSaree(saree.id)" class="btn btn-secondary btn-delete-inv" aria-label="Delete saree">
-                <i class="fa-solid fa-trash-can"></i> Delete
-              </button>
+              <div class="inv-actions-row">
+                <button (click)="onEditSaree(saree)" class="btn btn-secondary btn-edit-inv" aria-label="Edit saree">
+                  <i class="fa-solid fa-pen-to-square"></i> Edit
+                </button>
+                <button (click)="onDeleteSaree(saree.id)" class="btn btn-secondary btn-delete-inv" aria-label="Delete saree">
+                  <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

@@ -323,12 +323,24 @@
   color: var(--text-secondary);
 }
 
-.btn-delete-inv {
-  align-self: flex-start;
+.inv-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.btn-delete-inv, .btn-edit-inv {
   padding: 6px 12px;
   font-size: 0.75rem;
   height: auto;
-  border-color: rgba(192, 57, 43, 0.4);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-delete-inv {
+  border-color: rgba(192, 57, 43, 0.3);
   color: #c0392b;
 }
 
@@ -337,6 +349,49 @@
   color: white;
   border-color: #c0392b;
 }
+
+.btn-edit-inv {
+  border-color: rgba(184, 134, 11, 0.3);
+  color: var(--accent-color);
+}
+
+.btn-edit-inv:hover {
+  background-color: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+/* Form Actions Row */
+.form-actions-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.upload-submit-btn {
+  flex: 2;
+  padding: 16px;
+  height: 52px;
+}
+
+.cancel-edit-btn {
+  flex: 1;
+  padding: 16px;
+  height: 52px;
+  border-color: var(--text-muted);
+  color: var(--text-secondary);
+}
+
+.cancel-edit-btn:hover {
+  background-color: var(--bg-secondary);
+  color: var(--primary-color);
+}
+
+.existing-images-panel {
+  border: 1px solid var(--border-color);
+  background-color: #f7f6f0;
+}
+
 
 .inventory-loading {
   text-align: center;

@@ -35,6 +35,25 @@ def create_saree(db: Session, saree: schemas.SareeCreate):
     db.refresh(db_saree)
     return db_saree
 
+def update_saree(db: Session, db_saree: models.Saree, saree: schemas.SareeCreate):
+    db_saree.name = saree.name
+    db_saree.description = saree.description
+    db_saree.price = saree.price
+    db_saree.length = saree.length
+    db_saree.blouse = saree.blouse
+    db_saree.delivery_duration = saree.delivery_duration
+    db_saree.highlights = saree.highlights
+    db_saree.work = saree.work
+    db_saree.quality = saree.quality
+    db.commit()
+    db.refresh(db_saree)
+    return db_saree
+
+def delete_saree_images(db: Session, saree_id: int):
+    db.query(models.SareeImage).filter(models.SareeImage.saree_id == saree_id).delete()
+    db.commit()
+
+
 def add_saree_image(db: Session, saree_id: int, image_url: str, is_primary: bool):
     db_image = models.SareeImage(
         saree_id=saree_id,

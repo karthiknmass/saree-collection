@@ -47,6 +47,7 @@
   padding-top: 125%; /* 4:5 aspect ratio */
   position: relative;
   box-shadow: var(--shadow-sm);
+  cursor: zoom-in;
 }
 
 .main-img {
@@ -56,12 +57,24 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  
+  /* Optimize rendering for crisp contrast & clarity */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
+  
+  /* Premium zoom transitions */
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform-origin: 50% 50%;
 }
 
-.main-img:hover {
-  transform: scale(1.03);
+.main-image-wrapper:hover .main-img {
+  transform: scale(2.2); /* 2.2x Zoom magnifier */
+  transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), transform-origin 0.05s ease-out;
 }
+
+
+
 
 .thumbnails-row {
   display: flex;
