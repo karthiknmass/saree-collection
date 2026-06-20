@@ -1,0 +1,193 @@
+<div class="app-container">
+  <!-- Elegant Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a routerLink="/" class="logo-group">
+        <span class="logo-serif">SHREE</span>
+        <span class="logo-sub">BOUTIQUE</span>
+      </a>
+
+      <nav class="nav-links">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">Collection</a>
+        
+        <!-- Only show Admin links if admin is logged in. Hides it from guests. -->
+        <ng-container *ngIf="authService.isLoggedIn()">
+          <a routerLink="/admin" routerLinkActive="active" class="nav-item admin-badge">Admin Portal</a>
+          <button (click)="onLogout()" class="nav-item-btn logout-btn" aria-label="Admin Logout">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </ng-container>
+      </nav>
+
+      <div class="nav-actions">
+        <button (click)="toggleCart()" class="cart-btn" aria-label="Open Shopping Cart">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span *ngIf="cartService.count() > 0" class="badge">{{ cartService.count() }}</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Routing Area -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Luxury Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <h3 class="footer-logo">SHREE BOUTIQUE</h3>
+        <p class="footer-desc">Curating the finest handcrafted sarees that celebrate heritage, elegance, and premium artistry.</p>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-pinterest-p"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Explore</h4>
+        <a routerLink="/">Saree Collection</a>
+        <a routerLink="/admin">Admin Uploads</a>
+        <a href="#">About Our Heritage</a>
+      </div>
+      <div class="footer-contact">
+        <h4>Customer Care</h4>
+        <p><i class="fa-solid fa-truck-fast"></i> Premium Worldwide Shipping</p>
+        <p><i class="fa-solid fa-phone"></i> +91 99999 99999</p>
+        <p><i class="fa-solid fa-envelope"></i> care&#64;shreeboutique.com</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Shree Boutique. All rights reserved. Handcrafted with love.</p>
+    </div>
+  </footer>
+
+  <!-- Slide-out Shopping Cart Drawer -->
+  <div class="cart-drawer-backdrop" [class.open]="isCartOpen()" (click)="closeCart()"></div>
+  <aside class="cart-drawer" [class.open]="isCartOpen()">
+    <div class="cart-header">
+      <h3>Your Bag ({{ cartService.count() }})</h3>
+      <button (click)="closeCart()" class="close-btn" aria-label="Close cart">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Cart Empty State -->
+    <div *ngIf="cartService.items().length === 0" class="cart-empty-state">
+      <i class="fa-solid fa-bag-shopping empty-icon"></i>
+      <p class="empty-msg">Your shopping bag is empty.</p>
+      <button (click)="closeCart()" class="btn btn-primary">Browse Collection</button>
+    </div>
+
+    <!-- Cart Items List -->
+    <div *ngIf="cartService.items().length > 0" class="cart-items-container">
+      <div *ngFor="let item of cartService.items()" class="cart-item-card">
+        <img [src]="item.imageUrl ? 'http://localhost:8000' + item.imageUrl : 'assets/placeholder-saree.jpg'" 
+             [alt]="item.name" 
+             class="cart-item-img">
+        <div class="cart-item-details">
+          <h4 class="cart-item-title">{{ item.name }}</h4>
+          <p class="cart-item-price">₹{{ item.price.toLocaleString('en-IN') }}</p>
+          
+          <div class="cart-item-actions">
+            <div class="quantity-selector">
+              <button (click)="cartService.updateQuantity(item.id, item.quantity - 1)" class="qty-btn" aria-label="Decrease quantity">
+                <i class="fa-solid fa-minus"></i>
+              </button>
+              <span class="qty-num">{{ item.quantity }}</span>
+              <button (click)="cartService.updateQuantity(item.id, item.quantity + 1)" class="qty-btn" aria-label="Increase quantity">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+            <button (click)="cartService.removeFromCart(item.id)" class="delete-btn" aria-label="Remove item">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart Footer / Total -->
+    <div *ngIf="cartService.items().length > 0" class="cart-footer">
+      <div class="cart-summary-row">
+        <span>Subtotal</span>
+        <span class="cart-total-price">₹{{ cartService.total().toLocaleString('en-IN') }}</span>
+      </div>
+      <p class="cart-info-tax">Shipping & taxes calculated at checkout.</p>
+      <button (click)="openCheckout()" class="btn btn-accent checkout-btn">
+        Proceed to Checkout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Checkout & Success Dialog -->
+  <div class="checkout-overlay" *ngIf="isCheckoutOpen()">
+    <div class="checkout-modal animate-slide-up" *ngIf="!orderSubmitted()">
+      <div class="checkout-header">
+        <h3>Secure Checkout</h3>
+        <button (click)="closeCheckout()" class="close-btn" aria-label="Close checkout">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form (ngSubmit)="submitOrder()" #checkoutForm="ngForm" class="checkout-form">
+        <div class="form-group">
+          <label for="name" class="form-label">Full Name</label>
+          <input type="text" id="name" name="name" [(ngModel)]="customerName" required class="form-control" placeholder="e.g. Priyanjali Sharma">
+        </div>
+
+        <div class="form-group">
+          <label for="phone" class="form-label">Mobile Number</label>
+          <input type="tel" id="phone" name="phone" [(ngModel)]="customerPhone" required class="form-control" placeholder="e.g. +91 98765 43210">
+        </div>
+
+        <div class="form-group">
+          <label for="address" class="form-label">Delivery Address</label>
+          <textarea id="address" name="address" [(ngModel)]="customerAddress" required rows="3" class="form-control" placeholder="Complete address with PIN code"></textarea>
+        </div>
+
+        <div class="order-summary-box">
+          <h4>Order Summary</h4>
+          <div class="summary-list">
+            <div *ngFor="let item of cartService.items()" class="summary-row">
+              <span>{{ item.name }} x{{ item.quantity }}</span>
+              <span>₹{{ (item.price * item.quantity).toLocaleString('en-IN') }}</span>
+            </div>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-total">
+            <span>Total Amount</span>
+            <span>₹{{ cartService.total().toLocaleString('en-IN') }}</span>
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="!checkoutForm.form.valid" class="btn btn-accent submit-order-btn" [class.btn-disabled]="!checkoutForm.form.valid">
+          Confirm & Place Order
+        </button>
+      </form>
+    </div>
+
+    <!-- Success Screen -->
+    <div class="checkout-modal success-modal animate-scale-up" *ngIf="orderSubmitted()">
+      <div class="success-icon-box">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h2>Order Placed Successfully!</h2>
+      <p class="success-order-id">Order ID: <strong>{{ orderNumber() }}</strong></p>
+      
+      <p class="success-msg">
+        Thank you for shopping with Shree Boutique. Your order has been registered in our system.
+      </p>
+
+      <div class="success-actions">
+        <a [href]="getWhatsAppLink()" target="_blank" (click)="completeOrderFlow()" class="btn btn-accent whatsapp-btn">
+          <i class="fa-brands fa-whatsapp"></i> Send Order details to WhatsApp
+        </a>
+        <button (click)="completeOrderFlow()" class="btn btn-secondary continue-shopping-btn">
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

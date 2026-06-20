@@ -1,0 +1,100 @@
+<div class="catalog-page fade-in">
+  <!-- Premium Hero Banner -->
+  <section class="hero-banner">
+    <div class="hero-content">
+      <h1 class="hero-title">Heritage Handlooms</h1>
+      <p class="hero-subtitle">Celebrate the timeless elegance of premium handwoven sarees crafted by master weavers.</p>
+      <div class="gold-divider"></div>
+    </div>
+  </section>
+
+  <!-- Filter & Search Controls -->
+  <section class="controls-section">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" 
+             placeholder="Search by name, work, fabric quality..." 
+             [(ngModel)]="searchQuery" 
+             class="form-control search-input" 
+             aria-label="Search sarees">
+    </div>
+
+    <div class="sort-box">
+      <label for="sort" class="sort-label">Sort By</label>
+      <select id="sort" (change)="onSortChange($event)" class="form-control sort-select">
+        <option value="newest">Newest Arrivals</option>
+        <option value="price_low">Price: Low to High</option>
+        <option value="price_high">Price: High to Low</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Collection Grid -->
+  <section class="collection-section">
+    <!-- 1. Skeleton Loader Cards (shows while fetching items) -->
+    <div *ngIf="loading() && sareesList().length === 0" class="grid-cols-4">
+      <div *ngFor="let i of [1,2,3,4,5,6,7,8]" class="saree-skeleton-card">
+        <div class="skeleton-image shimmer-loader"></div>
+        <div class="skeleton-details">
+          <div class="skeleton-line title-line shimmer-loader"></div>
+          <div class="skeleton-line tag-line shimmer-loader"></div>
+          <div class="skeleton-line price-line shimmer-loader"></div>
+          <div class="skeleton-actions">
+            <div class="skeleton-btn shimmer-loader"></div>
+            <div class="skeleton-btn shimmer-loader"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Actual Products List -->
+    <div *ngIf="sareesList().length > 0" class="grid-cols-4">
+      <div *ngFor="let saree of filteredSarees()" class="saree-card">
+        <a [routerLink]="['/saree', saree.id]" class="card-link">
+          <div class="image-wrapper">
+            <!-- Image container has background shimmer, and the actual image fades in when loaded -->
+            <div class="image-shimmer-bg shimmer-loader"></div>
+            <img [src]="getPrimaryImage(saree)" 
+                 [alt]="saree.name" 
+                 loading="lazy" 
+                 (error)="onImageError($event)"
+                 class="saree-img">
+            
+            <div class="quality-badge" *ngIf="saree.quality">{{ saree.quality }}</div>
+          </div>
+
+          <div class="saree-info">
+            <h3 class="saree-name">{{ saree.name }}</h3>
+            <p class="saree-work" *ngIf="saree.work">{{ saree.work }}</p>
+            <p class="saree-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+          </div>
+        </a>
+
+        <!-- Premium Add to Cart & Buy Now Hover/Actions -->
+        <div class="card-actions">
+          <button (click)="addToCart(saree, $event)" class="btn btn-secondary card-btn-cart" aria-label="Add to cart">
+            <i class="fa-solid fa-cart-plus"></i> Add
+          </button>
+          <button (click)="buyNow(saree, $event)" class="btn btn-accent card-btn-buy" aria-label="Buy now">
+            Buy Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. No Results State -->
+    <div *ngIf="!loading() && filteredSarees().length === 0" class="no-results-box">
+      <i class="fa-solid fa-circle-question no-results-icon"></i>
+      <h3>No Sarees Found</h3>
+      <p>Try adjusting your search terms or view our newest collections.</p>
+    </div>
+
+    <!-- Load More Button -->
+    <div class="load-more-container" *ngIf="hasMore() && sareesList().length > 0">
+      <button (click)="loadMore()" class="btn btn-primary btn-load-more" [disabled]="loading()">
+        <span *ngIf="loading()"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</span>
+        <span *ngIf="!loading()">Load More Collection</span>
+      </button>
+    </div>
+  </section>
+</div>

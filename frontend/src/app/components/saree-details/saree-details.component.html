@@ -1,0 +1,115 @@
+<div class="details-page fade-in">
+  <div class="back-nav">
+    <a routerLink="/" class="back-link">
+      <i class="fa-solid fa-arrow-left-long"></i> Back to Collection
+    </a>
+  </div>
+
+  <!-- 1. Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner-box">
+      <i class="fa-solid fa-spinner fa-spin loader-icon"></i>
+      <p>Fetching exquisite saree details...</p>
+    </div>
+  </div>
+
+  <!-- 2. Saree Details View -->
+  <div *ngIf="!loading() && saree()" class="product-container">
+    
+    <!-- Left Column: Gallery -->
+    <div class="gallery-column">
+      <div class="main-image-wrapper">
+        <img [src]="saree()!.images.length > 0 ? 'http://localhost:8000' + saree()!.images[activeImageIndex()].image_url : 'assets/placeholder-saree.jpg'" 
+             [alt]="saree()!.name" 
+             (error)="onImageError($event)"
+             class="main-img">
+      </div>
+
+      <!-- Thumbnail selector (if multiple images exist) -->
+      <div class="thumbnails-row" *ngIf="saree()!.images.length > 1">
+        <button *ngFor="let img of saree()!.images; let idx = index" 
+                (click)="setActiveImage(idx)" 
+                class="thumb-btn" 
+                [class.active]="idx === activeImageIndex()"
+                [attr.aria-label]="'Select image ' + (idx + 1)">
+          <img [src]="'http://localhost:8000' + img.image_url" 
+               [alt]="'Thumbnail ' + (idx + 1)" 
+               (error)="onImageError($event)"
+               class="thumb-img">
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Column: Specs -->
+    <div class="info-column">
+      <span class="info-category" *ngIf="saree()!.quality">{{ saree()!.quality }} Fabric</span>
+      <h1 class="info-title">{{ saree()!.name }}</h1>
+      <p class="info-price">₹{{ saree()!.price.toLocaleString('en-IN') }}</p>
+      
+      <div class="info-description" *ngIf="saree()!.description">
+        <p>{{ saree()!.description }}</p>
+      </div>
+
+      <!-- Highlights Section -->
+      <div class="highlights-box" *ngIf="saree()!.highlights && saree()!.highlights.length > 0">
+        <h3>Highlights</h3>
+        <ul class="highlights-list">
+          <li *ngFor="let hl of saree()!.highlights">
+            <i class="fa-solid fa-circle-check hl-icon"></i> {{ hl }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Specs Table -->
+      <div class="specs-box">
+        <h3>Specifications</h3>
+        <div class="specs-grid">
+          <div class="spec-row" *ngIf="saree()!.work">
+            <span class="spec-label">Work Type</span>
+            <span class="spec-val">{{ saree()!.work }}</span>
+          </div>
+          <div class="spec-row" *ngIf="saree()!.length">
+            <span class="spec-label">Saree Length</span>
+            <span class="spec-val">{{ saree()!.length }}</span>
+          </div>
+          <div class="spec-row" *ngIf="saree()!.blouse">
+            <span class="spec-label">Blouse</span>
+            <span class="spec-val">{{ saree()!.blouse }}</span>
+          </div>
+          <div class="spec-row" *ngIf="saree()!.delivery_duration">
+            <span class="spec-label">Delivery Duration</span>
+            <span class="spec-val">{{ saree()!.delivery_duration }}</span>
+          </div>
+          <div class="spec-row" *ngIf="saree()!.quality">
+            <span class="spec-label">Fabric Quality</span>
+            <span class="spec-val">{{ saree()!.quality }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buy Action CTAs -->
+      <div class="action-buttons-group">
+        <button (click)="addToCart()" class="btn btn-secondary details-btn-cart">
+          <i class="fa-solid fa-cart-plus"></i> Add To Bag
+        </button>
+        <button (click)="buyNow()" class="btn btn-accent details-btn-buy">
+          Buy Now
+        </button>
+      </div>
+      
+      <div class="trust-badge-row">
+        <span><i class="fa-solid fa-rotate-left"></i> Easy Exchange</span>
+        <span><i class="fa-solid fa-shield-halved"></i> 100% Authentic</span>
+        <span><i class="fa-solid fa-hand-holding-heart"></i> Handcrafted Quality</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Error State -->
+  <div *ngIf="!loading() && !saree()" class="error-state">
+    <i class="fa-solid fa-triangle-exclamation error-icon"></i>
+    <h2>Saree Details Not Found</h2>
+    <p>We couldn't load the details for this item. It may have been removed.</p>
+    <button routerLink="/" class="btn btn-primary">Return to Catalog</button>
+  </div>
+</div>

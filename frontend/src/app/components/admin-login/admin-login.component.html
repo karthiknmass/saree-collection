@@ -1,0 +1,56 @@
+<div class="login-page fade-in">
+  <div class="login-card">
+    <div class="login-header">
+      <span class="brand-serif">SHREE</span>
+      <span class="brand-sub">BOUTIQUE</span>
+      <div class="gold-line"></div>
+      <p class="login-title">Administrator Portal</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage()" class="alert alert-danger">
+      <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMessage() }}
+    </div>
+
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="login-form">
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <div class="input-icon-wrapper">
+          <i class="fa-solid fa-user input-icon"></i>
+          <input type="text" 
+                 id="username" 
+                 name="username" 
+                 [(ngModel)]="username" 
+                 required 
+                 class="form-control with-icon" 
+                 placeholder="e.g. admin">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-icon-wrapper">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input type="password" 
+                 id="password" 
+                 name="password" 
+                 [(ngModel)]="password" 
+                 required 
+                 class="form-control with-icon" 
+                 placeholder="••••••••">
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="!loginForm.form.valid || loading()" class="btn btn-accent login-btn" [class.btn-disabled]="!loginForm.form.valid || loading()">
+        <span *ngIf="loading()"><i class="fa-solid fa-spinner fa-spin"></i> Authorizing...</span>
+        <span *ngIf="!loading()">Login as Administrator</span>
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <a routerLink="/" class="back-link">
+        <i class="fa-solid fa-arrow-left-long"></i> Return to Saree Collection
+      </a>
+    </div>
+  </div>
+</div>

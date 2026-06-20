@@ -1,0 +1,150 @@
+<div class="admin-page fade-in">
+  <div class="admin-title-row">
+    <h1>Boutique Administration Portal</h1>
+    <p>Manage saree collections, prices, fabric specifications, and upload optimized collections.</p>
+  </div>
+
+  <div class="admin-layout">
+    <!-- Left Panel: Upload Form -->
+    <div class="form-panel">
+      <h2>Upload New Saree</h2>
+      
+      <!-- Notifications -->
+      <div *ngIf="successMessage()" class="alert alert-success">
+        <i class="fa-solid fa-circle-check"></i> {{ successMessage() }}
+      </div>
+      <div *ngIf="errorMessage()" class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMessage() }}
+      </div>
+
+      <form (ngSubmit)="onUploadSaree(uploadForm)" #uploadForm="ngForm" class="upload-form">
+        <!-- Form Inputs Grid -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="name" class="form-label">Saree Name *</label>
+            <input type="text" id="name" name="name" [(ngModel)]="name" required class="form-control" placeholder="e.g. Kanchipuram Pure Silk Zari">
+          </div>
+
+          <div class="form-group">
+            <label for="price" class="form-label">Price (INR) *</label>
+            <input type="number" id="price" name="price" [(ngModel)]="price" required min="1" class="form-control" placeholder="e.g. 12500">
+          </div>
+
+          <div class="form-group">
+            <label for="quality" class="form-label">Fabric / Quality *</label>
+            <input type="text" id="quality" name="quality" [(ngModel)]="quality" required class="form-control" placeholder="e.g. Pure Georgette, Organza">
+          </div>
+
+          <div class="form-group">
+            <label for="work" class="form-label">Work Description *</label>
+            <input type="text" id="work" name="work" [(ngModel)]="work" required class="form-control" placeholder="e.g. Zardozi Embroidery, Hand Block">
+          </div>
+
+          <div class="form-group">
+            <label for="length" class="form-label">Saree Length</label>
+            <input type="text" id="length" name="length" [(ngModel)]="length" class="form-control" placeholder="e.g. 5.5 meters">
+          </div>
+
+          <div class="form-group">
+            <label for="blouse" class="form-label">Blouse Included?</label>
+            <input type="text" id="blouse" name="blouse" [(ngModel)]="blouse" class="form-control" placeholder="e.g. Yes (Contrast), Running">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="delivery" class="form-label">Delivery Duration</label>
+            <input type="text" id="delivery" name="delivery" [(ngModel)]="deliveryDuration" class="form-control" placeholder="e.g. 3-5 working days">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="description" class="form-label">Detailed Description</label>
+            <textarea id="description" name="description" [(ngModel)]="description" rows="3" class="form-control" placeholder="Describe the saree's texture, look, and occasion suitability..."></textarea>
+          </div>
+        </div>
+
+        <!-- Dynamic Highlights Section -->
+        <div class="highlights-builder">
+          <label class="form-label">Key Highlights / Features</label>
+          <div class="builder-row">
+            <input type="text" name="newHighlight" [(ngModel)]="newHighlightInput" class="form-control" placeholder="Add point, e.g. Silk Mark certified" (keyup.enter)="addHighlight()">
+            <button type="button" (click)="addHighlight()" class="btn btn-secondary btn-add-hl">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+          <!-- Highlights List -->
+          <ul class="hl-items-list" *ngIf="highlightsList().length > 0">
+            <li *ngFor="let hl of highlightsList(); let idx = index">
+              <span><i class="fa-solid fa-chevron-right"></i> {{ hl }}</span>
+              <button type="button" (click)="removeHighlight(idx)" class="btn-remove-hl" aria-label="Remove point">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Multiple Images Upload Section -->
+        <div class="image-uploader">
+          <label class="form-label">Saree Photos * (Upload multiple)</label>
+          <div class="upload-dropzone">
+            <i class="fa-solid fa-cloud-arrow-up cloud-icon"></i>
+            <p>Click here or select files to upload saree images</p>
+            <input type="file" multiple accept="image/*" (change)="onFileSelect($event)" class="file-input-overlay" aria-label="Upload files">
+          </div>
+
+          <!-- File Previews Grid -->
+          <div class="previews-section" *ngIf="imagePreviews().length > 0">
+            <div class="previews-header">
+              <span>Selected Images ({{ imagePreviews().length }})</span>
+              <button type="button" (click)="clearPreviews()" class="btn-clear-previews">Clear All</button>
+            </div>
+            <div class="previews-grid">
+              <div *ngFor="let preview of imagePreviews()" class="preview-box">
+                <img [src]="preview" alt="Preview Image" class="preview-img">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="!uploadForm.form.valid || submitting()" class="btn btn-accent upload-submit-btn" [class.btn-disabled]="!uploadForm.form.valid || submitting()">
+          <span *ngIf="submitting()"><i class="fa-solid fa-spinner fa-spin"></i> Processing & Optimizing...</span>
+          <span *ngIf="!submitting()">Upload Saree Collection</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Panel: Inventory List -->
+    <div class="inventory-panel">
+      <h2>Collection Inventory</h2>
+
+      <!-- Loading State -->
+      <div *ngIf="loadingList()" class="inventory-loading">
+        <i class="fa-solid fa-spinner fa-spin inventory-spinner"></i>
+        <p>Loading inventory list...</p>
+      </div>
+
+      <!-- Inventory Grid -->
+      <div *ngIf="!loadingList()" class="inventory-scroll">
+        <div *ngIf="sareesList().length === 0" class="empty-inventory">
+          <i class="fa-solid fa-box-open empty-inv-icon"></i>
+          <p>No sarees uploaded yet. Use the form on the left to add items.</p>
+        </div>
+
+        <div *ngIf="sareesList().length > 0" class="inventory-grid">
+          <div *ngFor="let saree of sareesList()" class="inventory-card">
+            <img [src]="saree.images.length > 0 ? 'http://localhost:8000' + saree.images[0].image_url : 'assets/placeholder-saree.jpg'" alt="" class="inv-img">
+            <div class="inv-details">
+              <h4 class="inv-name">{{ saree.name }}</h4>
+              <p class="inv-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+              <div class="inv-tags">
+                <span class="inv-tag" *ngIf="saree.quality">{{ saree.quality }}</span>
+                <span class="inv-tag" *ngIf="saree.work">{{ saree.work }}</span>
+              </div>
+              <button (click)="onDeleteSaree(saree.id)" class="btn btn-secondary btn-delete-inv" aria-label="Delete saree">
+                <i class="fa-solid fa-trash-can"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
