@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService } from './services/cart.service';
 import { AuthService } from './services/auth.service';
+import { SareeService } from './services/saree.service';
+import { WishlistService } from './services/wishlist.service';
 
 @Component({
   selector: 'app-root',
@@ -15,10 +17,15 @@ import { AuthService } from './services/auth.service';
 export class AppComponent {
   cartService = inject(CartService);
   authService = inject(AuthService);
+  wishlistService = inject(WishlistService);
+  private sareeService = inject(SareeService);
   private router = inject(Router);
 
   // Cart Drawer open/close state
   isCartOpen = signal(false);
+
+  // Wishlist Drawer open/close state
+  isWishlistOpen = signal(false);
 
   // Checkout Dialog state
   isCheckoutOpen = signal(false);
@@ -41,10 +48,30 @@ export class AppComponent {
 
   toggleCart() {
     this.isCartOpen.update(v => !v);
+    this.isWishlistOpen.set(false);
   }
 
   closeCart() {
     this.isCartOpen.set(false);
+  }
+
+  toggleWishlist() {
+    this.isWishlistOpen.update(v => !v);
+    this.isCartOpen.set(false);
+  }
+
+  closeWishlist() {
+    this.isWishlistOpen.set(false);
+  }
+
+  addToCartFromWishlist(item: any) {
+    this.cartService.addToCart({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      images: [{ image_url: item.image_url, is_primary: true }]
+    });
+    this.wishlistService.removeFromWishlist(item.id);
   }
 
   openCheckout() {
@@ -70,8 +97,33 @@ export class AppComponent {
 
     // Generate a random order number
     const randNum = Math.floor(100000 + Math.random() * 900000);
-    this.orderNumber.set(`SB-${randNum}`);
-    this.orderSubmitted.set(true);
+    const orderNo = `SB-${randNum}`;
+    this.orderNumber.set(orderNo);
+
+    // Structure the order payload matching OrderCreate backend schema
+    const orderPayload = {
+      order_number: orderNo,
+      customer_name: this.customerName,
+      customer_phone: this.customerPhone,
+      customer_address: this.customerAddress,
+      total_amount: this.cartService.total(),
+      items: this.cartService.items().map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }))
+    };
+
+    // Save order in backend database
+    this.sareeService.createOrder(orderPayload).subscribe({
+      next: (res) => {
+        this.orderSubmitted.set(true);
+      },
+      error: (err) => {
+        console.error('Error submitting order to database:', err);
+        alert('Could not submit order. Please try again.');
+      }
+    });
   }
 
   getWhatsAppLink(): string {
@@ -99,6 +151,55 @@ export class AppComponent {
       next: () => this.router.navigate(['/']),
       error: () => this.router.navigate(['/'])
     });
+  }
+
+  navigateToHome() {
+    if (this.router.url === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      this.router.navigate(['/']).then(() => {
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+      });
+    }
+  }
+
+  focusSearch() {
+    if (this.router.url === '/') {
+      this.triggerSearchFocus();
+    } else {
+      this.router.navigate(['/']).then(() => {
+        setTimeout(() => this.triggerSearchFocus(), 250);
+      });
+    }
+  }
+
+  private triggerSearchFocus() {
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      searchInput.focus();
+    }
+  }
+
+  scrollToSarees() {
+    if (this.router.url === '/') {
+      this.triggerSareesScroll();
+    } else {
+      this.router.navigate(['/']).then(() => {
+        setTimeout(() => this.triggerSareesScroll(), 250);
+      });
+    }
+  }
+
+  private triggerSareesScroll() {
+    const collectionEl = document.getElementById('collection-explore');
+    if (collectionEl) {
+      collectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  isCurrentRoute(route: string): boolean {
+    return this.router.url === route;
   }
 }
 

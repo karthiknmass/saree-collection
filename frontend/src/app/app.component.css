@@ -7,13 +7,41 @@
 
 .main-content {
   flex: 1;
-  padding-top: 80px; /* Navbar space */
+  padding-top: 116px; /* Announcement Bar + Navbar space */
+}
+
+/* Elegant Announcement Bar */
+.announcement-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 36px;
+  background-color: var(--primary-color);
+  color: var(--accent-color);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.announcement-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0 16px;
+  text-align: center;
 }
 
 /* Elegant Navbar */
 .navbar {
   position: fixed;
-  top: 0;
+  top: 36px;
   left: 0;
   width: 100%;
   height: 80px;
@@ -27,10 +55,10 @@
 }
 
 .nav-container {
-  max-width: 1280px;
+  max-width: 100%;
   width: 100%;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 5%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -120,7 +148,13 @@
   color: var(--accent-color);
 }
 
-.cart-btn {
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cart-btn, .wishlist-btn {
   background: transparent;
   border: none;
   font-size: 1.4rem;
@@ -137,7 +171,7 @@
   background-color: var(--bg-secondary);
 }
 
-.cart-btn:hover {
+.cart-btn:hover, .wishlist-btn:hover {
   background-color: var(--border-light);
   color: var(--accent-color);
 }
@@ -379,9 +413,9 @@
 }
 
 .footer-container {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 5%;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 40px;
@@ -628,9 +662,68 @@
   animation: fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
 }
 
+/* Mobile Bottom Navigation (Hidden on Desktop) */
+.mobile-bottom-nav {
+  display: none;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .nav-links {
     display: none; /* In production, we'd add a burger menu, but for now simple */
+  }
+  
+  /* Show Mobile Bottom Navigation on mobile view */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    background-color: rgba(250, 248, 245, 0.96); /* Elegant boutique background */
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border-light);
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+    z-index: 9999;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 8px;
+  }
+  
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.68rem;
+    font-weight: 600;
+    gap: 4px;
+    flex: 1;
+    height: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .bottom-nav-item i {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+  
+  .bottom-nav-item:hover, .bottom-nav-item.active {
+    color: var(--accent-color);
+  }
+  
+  .bottom-nav-item:hover i, .bottom-nav-item.active i {
+    color: var(--accent-color);
+    transform: translateY(-2px);
+  }
+  
+  /* Add bottom offset to container so bottom navigation doesn't overlap page content */
+  .app-container {
+    padding-bottom: 64px;
   }
 }

@@ -72,3 +72,40 @@ def delete_saree(db: Session, saree_id: int):
         db.commit()
         return True
     return False
+
+def create_order(db: Session, order: schemas.OrderCreate):
+    db_order = models.Order(
+        order_number=order.order_number,
+        customer_name=order.customer_name,
+        customer_phone=order.customer_phone,
+        customer_address=order.customer_address,
+        total_amount=order.total_amount,
+        items=[item.model_dump() for item in order.items]
+    )
+    db.add(db_order)
+    db.commit()
+    db.refresh(db_order)
+    return db_order
+
+def get_orders(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Order).order_by(desc(models.Order.created_at)).offset(skip).limit(limit).all()
+
+def update_order_status(db: Session, order_id: int, status: str):
+    db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if db_order:
+        db_order.status = status
+        db.commit()
+        db.refresh(db_order)
+    return db_order
+
+def create_review(db: Session, review: schemas.ReviewCreate, saree_id: int):
+    db_review = models.Review(
+        saree_id=saree_id,
+        reviewer_name=review.reviewer_name,
+        rating=review.rating,
+        comment=review.comment
+    )
+    db.add(db_review)
+    db.commit()
+    db.refresh(db_review)
+    return db_review

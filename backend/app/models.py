@@ -20,6 +20,7 @@ class Saree(Base):
 
     # Relationship to images
     images = relationship("SareeImage", back_populates="saree", cascade="all, delete-orphan")
+    reviews = relationship("Review", back_populates="saree", cascade="all, delete-orphan")
 
 
 class SareeImage(Base):
@@ -31,3 +32,29 @@ class SareeImage(Base):
     is_primary = Column(Boolean, default=False)
 
     saree = relationship("Saree", back_populates="images")
+
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_number = Column(String, index=True, nullable=False, unique=True)
+    customer_name = Column(String, nullable=False)
+    customer_phone = Column(String, nullable=False)
+    customer_address = Column(String, nullable=False)
+    total_amount = Column(Float, nullable=False)
+    items = Column(JSON, nullable=False) # list of items, e.g. [{"name": "Linen Saree", "quantity": 1, "price": 449}]
+    status = Column(String, default="Pending", nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    saree_id = Column(Integer, ForeignKey("sarees.id", ondelete="CASCADE"), nullable=False)
+    reviewer_name = Column(String, nullable=False)
+    rating = Column(Integer, nullable=False) # e.g. 1 to 5
+    comment = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    saree = relationship("Saree", back_populates="reviews")

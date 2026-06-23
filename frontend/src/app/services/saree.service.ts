@@ -23,6 +23,13 @@ export interface Saree {
   quality: string;
   created_at: string;
   images: SareeImage[];
+  reviews?: {
+    id: number;
+    reviewer_name: string;
+    rating: number;
+    comment: string;
+    created_at: string;
+  }[];
 }
 
 @Injectable({
@@ -61,6 +68,24 @@ export class SareeService {
   updateSaree(id: number, formData: FormData): Observable<Saree> {
     const headers = { 'Authorization': `Bearer ${this.authService.token()}` };
     return this.http.put<Saree>(`${this.apiUrl}/admin/sarees/${id}`, formData, { headers });
+  }
+
+  createOrder(order: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/orders`, order);
+  }
+
+  getOrders(): Observable<any[]> {
+    const headers = { 'Authorization': `Bearer ${this.authService.token()}` };
+    return this.http.get<any[]>(`${this.apiUrl}/admin/orders`, { headers });
+  }
+
+  updateOrderStatus(orderId: number, status: string): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${this.authService.token()}` };
+    return this.http.put<any>(`${this.apiUrl}/admin/orders/${orderId}/status`, { status }, { headers });
+  }
+
+  createReview(sareeId: number, review: { reviewer_name: string; rating: number; comment: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/sarees/${sareeId}/reviews`, review);
   }
 }
 

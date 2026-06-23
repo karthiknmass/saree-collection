@@ -1,10 +1,35 @@
 <div class="admin-page fade-in">
+  <!-- Real-time Alert Overlay for New Orders -->
+  <div class="order-alert-overlay" *ngIf="activeAlert()">
+    <div class="alert-box">
+      <div class="alert-icon-wrapper">
+        <i class="fa-solid fa-bell bell-ringing"></i>
+      </div>
+      <div class="alert-message-content">
+        <h4>New Order Booked!</h4>
+        <p>Order <strong>{{ activeAlert().order_number }}</strong> has been placed by <strong>{{ activeAlert().customer_name }}</strong> for a total of <strong>₹{{ activeAlert().total_amount.toLocaleString('en-IN') }}</strong>.</p>
+      </div>
+      <button type="button" (click)="closeAlert()" class="alert-close-btn" aria-label="Close alert">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
   <div class="admin-title-row">
     <h1>Boutique Administration Portal</h1>
     <p>Manage saree collections, prices, fabric specifications, and upload optimized collections.</p>
   </div>
 
-  <div class="admin-layout">
+  <!-- Tab switching controls -->
+  <div class="admin-tabs">
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'inventory'" (click)="activeTab.set('inventory')">
+      Collection Inventory
+    </button>
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'orders'" (click)="activeTab.set('orders')">
+      Customer Orders
+    </button>
+  </div>
+
+  <div class="admin-layout" *ngIf="activeTab() === 'inventory'">
     <!-- Left Panel: Upload Form -->
     <div class="form-panel">
       <h2>{{ editingSareeId() ? 'Edit Saree Details' : 'Upload New Saree' }}</h2>
@@ -19,8 +44,24 @@
       </div>
 
       <form (ngSubmit)="onUploadSaree(uploadForm)" #uploadForm="ngForm" class="upload-form">
+        <!-- WhatsApp Quick Paste Autofill Section -->
+        <div class="quick-paste-section" *ngIf="!editingSareeId()">
+          <div class="quick-paste-header">
+            <i class="fa-solid fa-wand-magic-sparkles magic-icon"></i>
+            <h4>Quick WhatsApp Paste (Auto-Fill)</h4>
+          </div>
+          <p class="quick-paste-desc">Paste the unstructured WhatsApp description block here and click Parse to instantly autofill the fields below.</p>
+          <div class="quick-paste-body">
+            <textarea name="quickPaste" [(ngModel)]="quickPasteText" rows="4" class="form-control quick-paste-textarea" placeholder="Paste description here... (e.g. Saree Name - Linen Cotton Saree, PRICE = 449+₹)"></textarea>
+            <button type="button" (click)="parseQuickPaste()" class="btn btn-secondary btn-parse">
+              <i class="fa-solid fa-gears"></i> Parse & Autofill
+            </button>
+          </div>
+        </div>
+
         <!-- Form Inputs Grid -->
         <div class="form-grid">
+
           <div class="form-group">
             <label for="name" class="form-label">Saree Name *</label>
             <input type="text" id="name" name="name" [(ngModel)]="name" required class="form-control" placeholder="e.g. Kanchipuram Pure Silk Zari">
@@ -172,6 +213,168 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orders Panel -->
+  <div class="orders-panel" *ngIf="activeTab() === 'orders'">
+    <div class="orders-header-row">
+      <h2>Recent Customer Orders</h2>
+      <div class="orders-header-actions">
+        <div class="view-switcher">
+          <button type="button" class="switcher-btn" [class.active]="orderViewMode() === 'grid'" (click)="orderViewMode.set('grid')" title="Card Grid View">
+            <i class="fa-solid fa-grip-vertical"></i> Card View
+          </button>
+          <button type="button" class="switcher-btn" [class.active]="orderViewMode() === 'table'" (click)="orderViewMode.set('table')" title="Table View">
+            <i class="fa-solid fa-table-list"></i> Table View
+          </button>
+        </div>
+        <button (click)="fetchAdminOrders()" class="btn btn-secondary btn-refresh-orders">
+          <i class="fa-solid fa-arrows-rotate"></i> Refresh Orders
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loadingOrders()" class="inventory-loading">
+      <i class="fa-solid fa-spinner fa-spin inventory-spinner"></i>
+      <p>Loading customer orders...</p>
+    </div>
+
+    <!-- Loaded State -->
+    <div *ngIf="!loadingOrders()">
+      <!-- Empty State -->
+      <div *ngIf="ordersList().length === 0" class="empty-inventory">
+        <i class="fa-solid fa-receipt empty-inv-icon"></i>
+        <p>No customer orders found in the database.</p>
+      </div>
+
+      <!-- Orders Grid (Card View) -->
+      <div *ngIf="ordersList().length > 0 && orderViewMode() === 'grid'" class="orders-grid">
+        <div *ngFor="let order of ordersList()" class="order-card">
+          <div class="order-card-header">
+            <span class="order-number">{{ order.order_number }}</span>
+            <div class="header-status-wrapper">
+              <span class="status-badge" [class.pending]="order.status !== 'Delivered'" [class.delivered]="order.status === 'Delivered'">
+                {{ order.status || 'Pending' }}
+              </span>
+              <span class="order-date">{{ order.created_at | date:'medium' }}</span>
+            </div>
+          </div>
+
+          <div class="order-card-body">
+            <!-- Customer Section -->
+            <div class="customer-info-section">
+              <div class="info-item">
+                <span class="info-label">Customer:</span>
+                <span class="info-value">{{ order.customer_name }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Phone:</span>
+                <span class="info-value phone">
+                  <a [href]="'tel:' + order.customer_phone">{{ order.customer_phone }}</a>
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Address:</span>
+                <span class="info-value">{{ order.customer_address }}</span>
+              </div>
+            </div>
+
+            <!-- Ordered Items Section -->
+            <div class="order-items-section">
+              <h5 class="section-title">Items Ordered</h5>
+              <div class="order-items-list">
+                <div *ngFor="let item of order.items" class="order-item-row">
+                  <span class="order-item-name">{{ item.name }}</span>
+                  <span class="order-item-qty">x{{ item.quantity }}</span>
+                  <span class="order-item-price">₹{{ item.price.toLocaleString('en-IN') }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="order-card-footer">
+            <button *ngIf="order.status !== 'Delivered'" (click)="confirmDelivery(order.id, order.order_number)" class="btn btn-secondary btn-deliver-order">
+              <i class="fa-solid fa-truck"></i> Mark Delivered
+            </button>
+            <div class="total-details">
+              <span class="total-label">Total Value:</span>
+              <span class="total-val">₹{{ order.total_amount.toLocaleString('en-IN') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Table View -->
+      <div *ngIf="ordersList().length > 0 && orderViewMode() === 'table'" class="orders-table-wrapper">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Shipping Address</th>
+              <th>Items Ordered</th>
+              <th>Total Amount</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of ordersList()">
+              <td class="order-cell-id">{{ order.order_number }}</td>
+              <td class="order-cell-date">{{ order.created_at | date:'short' }}</td>
+              <td class="order-cell-name">{{ order.customer_name }}</td>
+              <td class="order-cell-phone">
+                <a [href]="'tel:' + order.customer_phone">{{ order.customer_phone }}</a>
+              </td>
+              <td class="order-cell-address">{{ order.customer_address }}</td>
+              <td class="order-cell-items">
+                <div *ngFor="let item of order.items" class="table-item-row">
+                  {{ item.name }} (x{{ item.quantity }})
+                </div>
+              </td>
+              <td class="order-cell-total">₹{{ order.total_amount.toLocaleString('en-IN') }}</td>
+              <td class="order-cell-status">
+                <span class="status-badge" [class.pending]="order.status !== 'Delivered'" [class.delivered]="order.status === 'Delivered'">
+                  {{ order.status || 'Pending' }}
+                </span>
+              </td>
+              <td class="order-cell-actions">
+                <button *ngIf="order.status !== 'Delivered'" (click)="confirmDelivery(order.id, order.order_number)" class="btn btn-secondary btn-deliver-table" title="Mark as Delivered">
+                  <i class="fa-solid fa-truck"></i> Deliver
+                </button>
+                <span *ngIf="order.status === 'Delivered'" class="action-done"><i class="fa-solid fa-check"></i> Completed</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Premium Custom Confirmation Modal -->
+  <div class="custom-modal-overlay" *ngIf="isConfirmModalOpen()">
+    <div class="custom-modal-box">
+      <div class="modal-header">
+        <i class="fa-solid fa-circle-question question-icon"></i>
+        <h3>Confirm Order Delivery</h3>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to mark order <strong>{{ orderNumberToDeliver() }}</strong> as <strong>Delivered</strong>?</p>
+        <p class="modal-subtext">This will update the transaction status and notify tracking logs.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" (click)="closeConfirmModal()" class="btn btn-secondary btn-modal-cancel">
+          Cancel
+        </button>
+        <button type="button" (click)="executeMarkAsDelivered()" class="btn btn-accent btn-modal-confirm">
+          <i class="fa-solid fa-truck-ramp-box"></i> Confirm Delivery
+        </button>
       </div>
     </div>
   </div>

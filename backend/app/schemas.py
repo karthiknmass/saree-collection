@@ -18,6 +18,21 @@ class SareeImageResponse(SareeImageBase):
         from_attributes = True
 
 
+# Review Schemas
+class ReviewCreate(BaseModel):
+    reviewer_name: str
+    rating: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = None
+
+class ReviewResponse(ReviewCreate):
+    id: int
+    saree_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # Saree Schemas
 class SareeBase(BaseModel):
     name: str
@@ -37,6 +52,7 @@ class SareeResponse(SareeBase):
     id: int
     created_at: datetime
     images: List[SareeImageResponse] = []
+    reviews: List[ReviewResponse] = []
 
     class Config:
         from_attributes = True
@@ -50,4 +66,30 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     token: str
     token_type: str = "bearer"
+
+
+# Order Schemas
+class OrderItem(BaseModel):
+    name: str
+    quantity: int
+    price: float
+
+class OrderCreate(BaseModel):
+    order_number: str
+    customer_name: str
+    customer_phone: str
+    customer_address: str
+    total_amount: float
+    items: List[OrderItem]
+
+class OrderResponse(OrderCreate):
+    id: int
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class OrderStatusUpdate(BaseModel):
+    status: str
 

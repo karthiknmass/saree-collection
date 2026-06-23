@@ -44,7 +44,19 @@
     <div class="info-column">
       <span class="info-category" *ngIf="saree()!.quality">{{ saree()!.quality }} Fabric</span>
       <h1 class="info-title">{{ saree()!.name }}</h1>
-      <p class="info-price">₹{{ saree()!.price.toLocaleString('en-IN') }}</p>
+      
+      <!-- Rating Summary Row -->
+      <div class="rating-summary-row" *ngIf="saree()!.reviews?.length">
+        <div class="stars">
+          <i class="fa-solid fa-star" *ngFor="let star of [1, 2, 3, 4, 5]" [class.filled]="averageRating() >= star"></i>
+        </div>
+        <span class="rating-text">{{ averageRating() }} / 5 ({{ saree()!.reviews?.length }} {{ saree()!.reviews?.length === 1 ? 'review' : 'reviews' }})</span>
+      </div>
+      <div class="rating-summary-row no-reviews" *ngIf="!saree()!.reviews?.length">
+        <span class="rating-text">⭐ No reviews yet. Be the first to review!</span>
+      </div>
+
+      <p class="info-price" style="margin-top: 10px;">₹{{ saree()!.price.toLocaleString('en-IN') }}</p>
       
       <div class="info-description" *ngIf="saree()!.description">
         <p>{{ saree()!.description }}</p>
@@ -95,6 +107,12 @@
         <button (click)="buyNow()" class="btn btn-accent details-btn-buy">
           Buy Now
         </button>
+        <button (click)="toggleWishlist()" class="wishlist-toggle-btn" [class.wishlisted]="isWishlisted()" [attr.aria-label]="isWishlisted() ? 'Remove from Wishlist' : 'Add to Wishlist'">
+          <i class="fa-heart" [class.fa-solid]="isWishlisted()" [class.fa-regular]="!isWishlisted()"></i>
+        </button>
+        <button (click)="toggleShareDrawer()" class="share-trigger-btn" aria-label="Share Saree">
+          <i class="fa-solid fa-share-nodes"></i>
+        </button>
       </div>
       
       <div class="trust-badge-row">
@@ -105,11 +123,174 @@
     </div>
   </div>
 
+  <!-- Product Reviews & Ratings Section -->
+  <section class="reviews-section" *ngIf="!loading() && saree()">
+    <div class="section-divider"></div>
+    <div class="reviews-container">
+      <div class="reviews-header">
+        <h2>Customer Reviews & Ratings</h2>
+        <div class="header-rating-summary" *ngIf="saree()!.reviews?.length">
+          <span class="rating-num">{{ averageRating() }}</span>
+          <div class="stars-col">
+            <div class="stars">
+              <i class="fa-solid fa-star" *ngFor="let star of [1, 2, 3, 4, 5]" [class.filled]="averageRating() >= star"></i>
+            </div>
+            <span class="review-count">Based on {{ saree()!.reviews?.length }} {{ saree()!.reviews?.length === 1 ? 'review' : 'reviews' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="reviews-grid">
+        <!-- Left panel: Reviews List -->
+        <div class="reviews-list-panel">
+          <div *ngIf="!saree()!.reviews?.length" class="no-reviews-box">
+            <i class="fa-regular fa-comments" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 12px; display: block;"></i>
+            <p>No reviews have been written for this masterpiece yet.</p>
+          </div>
+
+          <div class="reviews-list" *ngIf="saree()!.reviews?.length">
+            <div *ngFor="let review of saree()!.reviews" class="review-card">
+              <div class="review-meta">
+                <span class="reviewer-name">{{ review.reviewer_name }}</span>
+                <span class="review-date">{{ review.created_at | date:'mediumDate' }}</span>
+              </div>
+              <div class="stars" style="margin: 6px 0;">
+                <i class="fa-solid fa-star" *ngFor="let star of [1, 2, 3, 4, 5]" [class.filled]="review.rating >= star"></i>
+              </div>
+              <p class="review-comment">{{ review.comment }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right panel: Write a Review Form -->
+        <div class="write-review-panel">
+          <h3>Write a Review</h3>
+          <form (ngSubmit)="submitReview()" #reviewForm="ngForm" class="review-form">
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 600;">Rating</label>
+              <div class="star-rating-selector" style="display: flex; gap: 8px;">
+                <button type="button" *ngFor="let star of [1, 2, 3, 4, 5]" 
+                        (click)="reviewRating = star" 
+                        class="star-select-btn" 
+                        [class.active]="reviewRating >= star"
+                        aria-label="Rate star"
+                        style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: #ddd; transition: color 0.2s ease;">
+                  <i class="fa-solid fa-star"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label for="rev-name" class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600;">Your Name</label>
+              <input type="text" id="rev-name" name="rev-name" [(ngModel)]="reviewerName" required class="form-control" placeholder="e.g. Anjali K." style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label for="rev-comment" class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600;">Review Comment</label>
+              <textarea id="rev-comment" name="rev-comment" [(ngModel)]="reviewComment" required rows="4" class="form-control" placeholder="Share your experience with the weave, quality, or colors..." style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); resize: vertical;"></textarea>
+            </div>
+
+            <button type="submit" [disabled]="!reviewForm.form.valid || submittingReview()" class="btn btn-accent submit-review-btn" style="width: 100%; padding: 12px; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-spinner fa-spin" *ngIf="submittingReview()"></i>
+              {{ submittingReview() ? 'Posting Review...' : 'Post Review' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Sarees Section -->
+  <section class="related-section" *ngIf="!loading() && saree() && relatedSareesList().length > 0">
+    <div class="related-header">
+      <h2>You May Also Like</h2>
+      <p>Exquisite weaves selected based on this saree's fabric and style</p>
+    </div>
+    
+    <div class="grid-cols-4 related-grid">
+      <div *ngFor="let rel of relatedSareesList()" class="saree-card">
+        <a [routerLink]="['/saree', rel.id]" class="card-link">
+          <div class="image-wrapper">
+            <div class="image-shimmer-bg shimmer-loader"></div>
+            <img [src]="getPrimaryImage(rel)" 
+                 [alt]="rel.name" 
+                 loading="lazy" 
+                 (error)="onImageError($event)"
+                 class="saree-img">
+            <div class="quality-badge" *ngIf="rel.quality">{{ rel.quality }}</div>
+          </div>
+          <div class="saree-info">
+            <h3 class="saree-name">{{ rel.name }}</h3>
+            <p class="saree-work" *ngIf="rel.work">{{ rel.work }}</p>
+            <p class="saree-price">₹{{ rel.price.toLocaleString('en-IN') }}</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- 3. Error State -->
   <div *ngIf="!loading() && !saree()" class="error-state">
     <i class="fa-solid fa-triangle-exclamation error-icon"></i>
     <h2>Saree Details Not Found</h2>
     <p>We couldn't load the details for this item. It may have been removed.</p>
     <button routerLink="/" class="btn btn-primary">Return to Catalog</button>
+  </div>
+
+  <!-- Share Bottom Sheet / Drawer -->
+  <div class="share-drawer-backdrop" [class.open]="isShareOpen()" (click)="closeShareDrawer()"></div>
+  <aside class="share-drawer" [class.open]="isShareOpen()">
+    <div class="share-drawer-header">
+      <h3>SHARE</h3>
+      <button (click)="closeShareDrawer()" class="close-drawer-btn" aria-label="Close share drawer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="share-drawer-body">
+      <!-- Copy Link Section -->
+      <div class="share-section">
+        <label class="share-section-label">Copy Link</label>
+        <div class="copy-link-group">
+          <input type="text" [value]="getProductUrl()" readonly class="share-url-input" #shareInput>
+          <button (click)="copyShareUrl(shareInput)" class="copy-url-btn" [class.copied]="shareCopied()" aria-label="Copy URL">
+            <i class="fa-solid" [class.fa-copy]="!shareCopied()" [class.fa-check]="shareCopied()"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Social Share Section -->
+      <div class="share-section" style="margin-top: 24px;">
+        <label class="share-section-label">Share</label>
+        <div class="social-share-row">
+          <div class="social-left-links">
+            <a [href]="getShareFacebookUrl()" target="_blank" class="social-circle-link facebook" aria-label="Share on Facebook">
+              <i class="fa-brands fa-facebook-f"></i>
+            </a>
+            <a [href]="getShareEmailUrl()" target="_blank" class="social-circle-link email" aria-label="Share via Email">
+              <i class="fa-solid fa-envelope"></i>
+            </a>
+          </div>
+
+          <!-- Floating WhatsApp button on the right -->
+          <a [href]="getShareWhatsAppUrl()" target="_blank" class="floating-whatsapp-share" aria-label="Share on WhatsApp">
+            <i class="fa-brands fa-whatsapp"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Toast Notification Popup for URL Copy -->
+  <div class="share-toast-popup" [class.show]="shareCopied()">
+    <div class="toast-content">
+      <div class="toast-icon">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div class="toast-details">
+        <span class="toast-title">Link Copied!</span>
+        <span class="toast-sub">{{ getProductUrl() }}</span>
+      </div>
+    </div>
   </div>
 </div>

@@ -1,37 +1,314 @@
 <div class="catalog-page fade-in">
-  <!-- Premium Hero Banner -->
-  <section class="hero-banner">
-    <div class="hero-content">
-      <h1 class="hero-title">Heritage Handlooms</h1>
-      <p class="hero-subtitle">Celebrate the timeless elegance of premium handwoven sarees crafted by master weavers.</p>
-      <div class="gold-divider"></div>
+  <!-- Premium Hero Carousel Banner -->
+  <section class="hero-carousel">
+    <div class="carousel-container">
+      <div *ngFor="let slide of bannerSlides; let idx = index" 
+           class="carousel-slide" 
+           [class.active]="currentSlide() === idx"
+           [style.backgroundImage]="'url(' + slide.image + ')'">
+        <div class="carousel-overlay">
+          <div class="carousel-slide-content">
+            <span class="slide-badge">Exclusive Handloom Collection</span>
+            <h1 class="slide-title">{{ slide.title }}</h1>
+            <p class="slide-subtitle">{{ slide.subtitle }}</p>
+            <div class="slide-cta-row">
+              <button class="btn btn-accent btn-slide-cta" (click)="scrollToCollection()">
+                {{ slide.cta }} <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Arrows -->
+    <button class="carousel-control prev" (click)="prevSlide()" aria-label="Previous slide">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <button class="carousel-control next" (click)="nextSlide()" aria-label="Next slide">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+
+    <!-- Slide Indicators -->
+    <div class="carousel-indicators">
+      <span *ngFor="let slide of bannerSlides; let idx = index" 
+            class="indicator-dot" 
+            [class.active]="currentSlide() === idx" 
+            (click)="goToSlide(idx)"></span>
     </div>
   </section>
 
-  <!-- Filter & Search Controls -->
+  <!-- Category Circle Quick Links -->
+  <section class="category-quick-links">
+    <div class="category-circles-container">
+      <div class="category-circle-card" (click)="filterByCategory('Linen')">
+        <div class="circle-image-wrapper">
+          <img src="/banner1.png" alt="Linen sarees">
+        </div>
+        <span class="circle-title">Linen Cotton</span>
+      </div>
+      <div class="category-circle-card" (click)="filterByCategory('Silk')">
+        <div class="circle-image-wrapper">
+          <img src="/banner2.png" alt="Silk sarees">
+        </div>
+        <span class="circle-title">Pure Silk</span>
+      </div>
+      <div class="category-circle-card" (click)="filterByCategory('Banarasi')">
+        <div class="circle-image-wrapper">
+          <img src="/banner3.png" alt="Banarasi sarees">
+        </div>
+        <span class="circle-title">Banarasi</span>
+      </div>
+      <div class="category-circle-card" (click)="filterByCategory('Organza')">
+        <div class="circle-image-wrapper">
+          <img src="/placeholder-saree.jpg" alt="Organza sarees">
+        </div>
+        <span class="circle-title">Organza</span>
+      </div>
+      <div class="category-circle-card" (click)="filterByCategory('Cotton')">
+        <div class="circle-image-wrapper">
+          <img src="/banner3.png" alt="Cotton sarees">
+        </div>
+        <span class="circle-title">Soft Cottons</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Horizontal Carousels: Shown only when NOT searching/filtering -->
+  <ng-container *ngIf="!searchQuery()">
+    
+    <!-- 1. Trending New Arrivals Carousel -->
+    <section class="carousel-section" *ngIf="newArrivals().length > 0">
+      <div class="section-header-row">
+        <div class="section-title-group">
+          <h2>New Arrivals Saree Collection</h2>
+          <p class="section-subtitle">Freshest weaves added directly from weaver looms</p>
+        </div>
+        <div class="carousel-nav-buttons">
+          <button class="btn btn-nav-circle" (click)="scrollCarousel('new-arrivals-track', 'left')" aria-label="Slide Left">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="btn btn-nav-circle" (click)="scrollCarousel('new-arrivals-track', 'right')" aria-label="Slide Right">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="carousel-outer">
+        <div class="carousel-track" id="new-arrivals-track">
+          <div *ngFor="let saree of newArrivals()" class="saree-slide-card">
+            <a [routerLink]="['/saree', saree.id]" class="card-link">
+              <div class="image-wrapper">
+                <div class="image-shimmer-bg shimmer-loader"></div>
+                <img [src]="getPrimaryImage(saree)" [alt]="saree.name" loading="lazy" (error)="onImageError($event)" class="saree-img">
+                <div class="quality-badge" *ngIf="saree.quality">{{ saree.quality }}</div>
+              </div>
+              <div class="saree-info">
+                <h3 class="saree-name">{{ saree.name }}</h3>
+                <p class="saree-work" *ngIf="saree.work">{{ saree.work }}</p>
+                <p class="saree-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+              </div>
+            </a>
+            <div class="card-actions">
+              <button (click)="addToCart(saree, $event)" class="btn btn-secondary card-btn-cart"><i class="fa-solid fa-cart-plus"></i> Add</button>
+              <button (click)="buyNow(saree, $event)" class="btn btn-accent card-btn-buy">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Promo Grid Section -->
+    <section class="promo-grid">
+      <div class="promo-card bg-charcoal">
+        <div class="promo-text-content">
+          <span class="promo-tag">Artisan Heritage</span>
+          <h3>Direct Weaver Loom Weaves</h3>
+          <p>We eliminate middle agencies to support the weavers. Ensuring premium handloom certifications and fair wage returns.</p>
+          <button class="btn btn-secondary btn-white-border" (click)="scrollToCollection()">Learn More</button>
+        </div>
+      </div>
+      <div class="promo-card bg-gold">
+        <div class="promo-text-content">
+          <span class="promo-tag">Premium Care</span>
+          <h3>Blouse Styling Service</h3>
+          <p>Order custom styling, matching accessories, and bespoke designer borders crafted by our master tailors.</p>
+          <button class="btn btn-accent" (click)="scrollToCollection()">Inquire Customization</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Linen & Cotton Grace Carousel -->
+    <section class="carousel-section" *ngIf="linenCottonSarees().length > 0">
+      <div class="section-header-row">
+        <div class="section-title-group">
+          <h2>Linen & Cotton Grace</h2>
+          <p class="section-subtitle">Comfortable, lightweight daily and semi-formal handlooms</p>
+        </div>
+        <div class="carousel-nav-buttons">
+          <button class="btn btn-nav-circle" (click)="scrollCarousel('linen-cotton-track', 'left')" aria-label="Slide Left">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="btn btn-nav-circle" (click)="scrollCarousel('linen-cotton-track', 'right')" aria-label="Slide Right">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="carousel-outer">
+        <div class="carousel-track" id="linen-cotton-track">
+          <div *ngFor="let saree of linenCottonSarees()" class="saree-slide-card">
+            <a [routerLink]="['/saree', saree.id]" class="card-link">
+              <div class="image-wrapper">
+                <div class="image-shimmer-bg shimmer-loader"></div>
+                <img [src]="getPrimaryImage(saree)" [alt]="saree.name" loading="lazy" (error)="onImageError($event)" class="saree-img">
+                <div class="quality-badge" *ngIf="saree.quality">{{ saree.quality }}</div>
+              </div>
+              <div class="saree-info">
+                <h3 class="saree-name">{{ saree.name }}</h3>
+                <p class="saree-work" *ngIf="saree.work">{{ saree.work }}</p>
+                <p class="saree-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+              </div>
+            </a>
+            <div class="card-actions">
+              <button (click)="addToCart(saree, $event)" class="btn btn-secondary card-btn-cart"><i class="fa-solid fa-cart-plus"></i> Add</button>
+              <button (click)="buyNow(saree, $event)" class="btn btn-accent card-btn-buy">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Silk Heritage Carousel -->
+    <section class="carousel-section" *ngIf="silkSarees().length > 0">
+      <div class="section-header-row">
+        <div class="section-title-group">
+          <h2>Silk Heritage & Festives</h2>
+          <p class="section-subtitle">Rich banarasi and pure silk masterpieces for grand celebrations</p>
+        </div>
+        <div class="carousel-nav-buttons">
+          <button class="btn btn-nav-circle" (click)="scrollCarousel('silk-track', 'left')" aria-label="Slide Left">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="btn btn-nav-circle" (click)="scrollCarousel('silk-track', 'right')" aria-label="Slide Right">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="carousel-outer">
+        <div class="carousel-track" id="silk-track">
+          <div *ngFor="let saree of silkSarees()" class="saree-slide-card">
+            <a [routerLink]="['/saree', saree.id]" class="card-link">
+              <div class="image-wrapper">
+                <div class="image-shimmer-bg shimmer-loader"></div>
+                <img [src]="getPrimaryImage(saree)" [alt]="saree.name" loading="lazy" (error)="onImageError($event)" class="saree-img">
+                <div class="quality-badge" *ngIf="saree.quality">{{ saree.quality }}</div>
+              </div>
+              <div class="saree-info">
+                <h3 class="saree-name">{{ saree.name }}</h3>
+                <p class="saree-work" *ngIf="saree.work">{{ saree.work }}</p>
+                <p class="saree-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+              </div>
+            </a>
+            <div class="card-actions">
+              <button (click)="addToCart(saree, $event)" class="btn btn-secondary card-btn-cart"><i class="fa-solid fa-cart-plus"></i> Add</button>
+              <button (click)="buyNow(saree, $event)" class="btn btn-accent card-btn-buy">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+      <div class="testimonials-header">
+        <h2>Customer Testimonials</h2>
+        <p>Loved and appreciated by handloom connoisseurs around the world</p>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+          <p>"The Linen Cotton saree drape is absolutely magnificent! It is so light and perfect for daily wear. Got so many compliments at work!"</p>
+          <span class="testimonial-author">- Anjali S., Mumbai</span>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+          <p>"Incredible fabric quality and weavers designs. The border patterns are highly customized. Definitely ordering more sarees soon."</p>
+          <span class="testimonial-author">- Meera K., Bangalore</span>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+          <p>"Premium packaging and fast shipping. The detail page hover magnifier made it so easy to inspect the weaving quality before ordering!"</p>
+          <span class="testimonial-author">- Priyanjali S., Delhi</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust Badges Section -->
+    <section class="trust-badges-section">
+      <div class="trust-badge-card">
+        <i class="fa-solid fa-gem trust-icon"></i>
+        <h4>100% Genuine Handlooms</h4>
+        <p>Handloom certified directly from weavers</p>
+      </div>
+      <div class="trust-badge-card">
+        <i class="fa-solid fa-truck-fast trust-icon"></i>
+        <h4>Worldwide Shipping</h4>
+        <p>Secure global packaging and courier</p>
+      </div>
+      <div class="trust-badge-card">
+        <i class="fa-solid fa-face-smile trust-icon"></i>
+        <h4>Support Artisans</h4>
+        <p>100% of profits support local weavers</p>
+      </div>
+      <div class="trust-badge-card">
+        <i class="fa-solid fa-shield-halved trust-icon"></i>
+        <h4>Secure Checkout</h4>
+        <p>Persisted cart order validation links</p>
+      </div>
+    </section>
+  </ng-container>
+
+  <!-- Collection Grid / Explorer Anchor -->
+  <div id="collection-explore" class="collection-explore-anchor"></div>
+
+  <!-- Search & Sort Controls Section -->
   <section class="controls-section">
-    <div class="search-box">
-      <i class="fa-solid fa-magnifying-glass search-icon"></i>
-      <input type="text" 
-             placeholder="Search by name, work, fabric quality..." 
-             [(ngModel)]="searchQuery" 
-             class="form-control search-input" 
-             aria-label="Search sarees">
+    <div class="explore-header" *ngIf="!searchQuery()">
+      <h2>Explore All Collections</h2>
+      <p>Browse our entire catalog of handwoven sarees</p>
+    </div>
+    <div class="explore-header" *ngIf="searchQuery()">
+      <h2>Search Results</h2>
+      <p>Found {{ filteredSarees().length }} saree(s) matching your search</p>
     </div>
 
-    <div class="sort-box">
-      <label for="sort" class="sort-label">Sort By</label>
-      <select id="sort" (change)="onSortChange($event)" class="form-control sort-select">
-        <option value="newest">Newest Arrivals</option>
-        <option value="price_low">Price: Low to High</option>
-        <option value="price_high">Price: High to Low</option>
-      </select>
+    <div class="controls-group">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" 
+               id="search-input"
+               placeholder="Search by name, work, fabric quality..." 
+               [(ngModel)]="searchQuery" 
+               class="form-control search-input" 
+               aria-label="Search sarees">
+      </div>
+
+      <div class="sort-box">
+        <label for="sort" class="sort-label">Sort By</label>
+        <select id="sort" (change)="onSortChange($event)" class="form-control sort-select">
+          <option value="newest">Newest Arrivals</option>
+          <option value="price_low">Price: Low to High</option>
+          <option value="price_high">Price: High to Low</option>
+        </select>
+      </div>
     </div>
   </section>
 
-  <!-- Collection Grid -->
+  <!-- Full Collection Explorer Grid -->
   <section class="collection-section">
-    <!-- 1. Skeleton Loader Cards (shows while fetching items) -->
+    <!-- 1. Skeleton Loader Cards -->
     <div *ngIf="loading() && sareesList().length === 0" class="grid-cols-4">
       <div *ngFor="let i of [1,2,3,4,5,6,7,8]" class="saree-skeleton-card">
         <div class="skeleton-image shimmer-loader"></div>
@@ -47,19 +324,17 @@
       </div>
     </div>
 
-    <!-- 2. Actual Products List -->
-    <div *ngIf="sareesList().length > 0" class="grid-cols-4">
+    <!-- 2. Product Grid -->
+    <div *ngIf="filteredSarees().length > 0" class="grid-cols-4">
       <div *ngFor="let saree of filteredSarees()" class="saree-card">
         <a [routerLink]="['/saree', saree.id]" class="card-link">
           <div class="image-wrapper">
-            <!-- Image container has background shimmer, and the actual image fades in when loaded -->
             <div class="image-shimmer-bg shimmer-loader"></div>
             <img [src]="getPrimaryImage(saree)" 
                  [alt]="saree.name" 
                  loading="lazy" 
                  (error)="onImageError($event)"
                  class="saree-img">
-            
             <div class="quality-badge" *ngIf="saree.quality">{{ saree.quality }}</div>
           </div>
 
@@ -70,7 +345,6 @@
           </div>
         </a>
 
-        <!-- Premium Add to Cart & Buy Now Hover/Actions -->
         <div class="card-actions">
           <button (click)="addToCart(saree, $event)" class="btn btn-secondary card-btn-cart" aria-label="Add to cart">
             <i class="fa-solid fa-cart-plus"></i> Add
@@ -90,11 +364,24 @@
     </div>
 
     <!-- Load More Button -->
-    <div class="load-more-container" *ngIf="hasMore() && sareesList().length > 0">
+    <div class="load-more-container" *ngIf="hasMore() && sareesList().length > 0 && !searchQuery()">
       <button (click)="loadMore()" class="btn btn-primary btn-load-more" [disabled]="loading()">
         <span *ngIf="loading()"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</span>
         <span *ngIf="!loading()">Load More Collection</span>
       </button>
+    </div>
+  </section>
+
+  <!-- Newsletter Section -->
+  <section class="newsletter-section">
+    <div class="newsletter-box">
+      <span class="newsletter-subtitle">Join the Boutique Circle</span>
+      <h2>Subscribe for Weaver Launches</h2>
+      <p>Receive exclusive alerts on weaver restocks, designer handloom releases, and boutique discounts directly to your inbox.</p>
+      <form class="newsletter-form" (submit)="$event.preventDefault(); onSubscribeNewsletter()">
+        <input type="email" placeholder="Enter your email address" required class="form-control newsletter-input">
+        <button type="submit" class="btn btn-accent btn-subscribe">Subscribe</button>
+      </form>
     </div>
   </section>
 </div>

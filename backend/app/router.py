@@ -1,7 +1,7 @@
 import os
 import json
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 from . import crud, models, schemas, utils, auth
 from .database import get_db
@@ -242,5 +242,99 @@ def delete_saree(
 
     success = crud.delete_saree(db, saree_id=saree_id)
     if not success:
+        raise HTTPException(status_code=400, detail="Error deleting saree")
+    
+    return {"message": "Saree and its associated images deleted successfully"}
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except Exception:
+                pass
+
+manager = ConnectionManager()
+
+@router.post("/orders", response_model=schemas.OrderResponse)
+async def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
+    """
+    Public endpoint to place a saree order.
+    """
+    try:
+        db_order = crud.create_order(db, order)
+        try:
+            notification = {
+                "type": "NEW_ORDER",
+                "order_number": db_order.order_number,
+                "customer_name": db_order.customer_name,
+                "total_amount": db_order.total_amount
+            }
+            await manager.broadcast(json.dumps(notification))
+        except Exception as ws_err:
+            print(f"Error broadcasting WebSocket message: {ws_err}")
+        return db_order
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error placing order: {str(e)}")
+
+@router.get("/admin/orders", response_model=List[schemas.OrderResponse])
+def get_orders(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    admin: str = Depends(auth.get_current_admin)
+):
+    """
+    Secure admin endpoint to view order lists and customer details.
+    """
+    return crud.get_orders(db, skip=skip, limit=limit)
+
+@router.websocket("/ws/orders")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception:
+        manager.disconnect(websocket)
+
+@router.put("/admin/orders/{order_id}/status", response_model=schemas.OrderResponse)
+def update_order_status(
+    order_id: int,
+    status_update: schemas.OrderStatusUpdate,
+    db: Session = Depends(get_db),
+    admin: str = Depends(auth.get_current_admin)
+):
+    """
+    Secure admin endpoint to update order status.
+    """
+    db_order = crud.update_order_status(db, order_id=order_id, status=status_update.status)
+    if not db_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return db_order
+
+@router.post("/sarees/{saree_id}/reviews", response_model=schemas.ReviewResponse, status_code=status.HTTP_201_CREATED)
+def create_review_for_saree(saree_id: int, review: schemas.ReviewCreate, db: Session = Depends(get_db)):
+    """
+    Public endpoint to post reviews and ratings for a saree.
+    """
+    db_saree = crud.get_saree(db, saree_id=saree_id)
+    if not db_saree:
         raise HTTPException(status_code=404, detail="Saree not found")
-    return
+    try:
+        return crud.create_review(db, review=review, saree_id=saree_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error posting review: {str(e)}")

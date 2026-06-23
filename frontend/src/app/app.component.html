@@ -1,4 +1,11 @@
 <div class="app-container">
+  <!-- Elegant Announcement Bar -->
+  <div class="announcement-bar">
+    <div class="announcement-content">
+      <span>✨ FREE SHIPPING PAN-INDIA | DIRECT FROM WEAVERS | 100% HANDLOOM GUARANTEE ✨</span>
+    </div>
+  </div>
+
   <!-- Elegant Navigation Bar -->
   <header class="navbar">
     <div class="nav-container">
@@ -10,16 +17,17 @@
       <nav class="nav-links">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">Collection</a>
         
-        <!-- Only show Admin links if admin is logged in. Hides it from guests. -->
-        <ng-container *ngIf="authService.isLoggedIn()">
-          <a routerLink="/admin" routerLinkActive="active" class="nav-item admin-badge">Admin Portal</a>
-          <button (click)="onLogout()" class="nav-item-btn logout-btn" aria-label="Admin Logout">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-          </button>
-        </ng-container>
+        <!-- Admin link is always visible for development -->
+        <a routerLink="/admin" routerLinkActive="active" class="nav-item admin-badge">Admin Portal</a>
       </nav>
 
       <div class="nav-actions">
+        <!-- Wishlist Button -->
+        <button (click)="toggleWishlist()" class="wishlist-btn" aria-label="Open Wishlist">
+          <i class="fa-solid fa-heart"></i>
+          <span *ngIf="wishlistService.count() > 0" class="badge">{{ wishlistService.count() }}</span>
+        </button>
+
         <button (click)="toggleCart()" class="cart-btn" aria-label="Open Shopping Cart">
           <i class="fa-solid fa-bag-shopping"></i>
           <span *ngIf="cartService.count() > 0" class="badge">{{ cartService.count() }}</span>
@@ -121,6 +129,47 @@
     </div>
   </aside>
 
+  <!-- Slide-out Wishlist Drawer -->
+  <div class="cart-drawer-backdrop" [class.open]="isWishlistOpen()" (click)="closeWishlist()"></div>
+  <aside class="cart-drawer" [class.open]="isWishlistOpen()">
+    <div class="cart-header">
+      <h3>Your Wishlist ({{ wishlistService.count() }})</h3>
+      <button (click)="closeWishlist()" class="close-btn" aria-label="Close wishlist">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Wishlist Empty State -->
+    <div *ngIf="wishlistService.items().length === 0" class="cart-empty-state">
+      <i class="fa-solid fa-heart empty-icon" style="color: var(--text-muted);"></i>
+      <p class="empty-msg">Your wishlist is empty.</p>
+      <button (click)="closeWishlist()" class="btn btn-primary">Browse Collection</button>
+    </div>
+
+    <!-- Wishlist Items List -->
+    <div *ngIf="wishlistService.items().length > 0" class="cart-items-container">
+      <div *ngFor="let item of wishlistService.items()" class="cart-item-card">
+        <img [src]="item.image_url ? 'http://localhost:8000' + item.image_url : 'assets/placeholder-saree.jpg'" 
+             [alt]="item.name" 
+             class="cart-item-img">
+        <div class="cart-item-details">
+          <h4 class="cart-item-title">{{ item.name }}</h4>
+          <p class="cart-item-price">₹{{ item.price.toLocaleString('en-IN') }}</p>
+          
+          <div class="cart-item-actions">
+            <!-- Add to Cart (from Wishlist) -->
+            <button (click)="addToCartFromWishlist(item)" class="btn btn-accent btn-sm" style="font-size: 0.8rem; padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-bag-shopping"></i> Move to Bag
+            </button>
+            <button (click)="wishlistService.removeFromWishlist(item.id)" class="delete-btn" aria-label="Remove item">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
   <!-- Checkout & Success Dialog -->
   <div class="checkout-overlay" *ngIf="isCheckoutOpen()">
     <div class="checkout-modal animate-slide-up" *ngIf="!orderSubmitted()">
@@ -191,3 +240,28 @@
     </div>
   </div>
 </div>
+
+<!-- Mobile Bottom Navigation Bar -->
+<nav class="mobile-bottom-nav">
+  <a (click)="navigateToHome()" class="bottom-nav-item" [class.active]="isCurrentRoute('/')" role="button">
+    <i class="fa-solid fa-house"></i>
+    <span>Home</span>
+  </a>
+  <a (click)="focusSearch()" class="bottom-nav-item" role="button">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span>Search</span>
+  </a>
+  <a (click)="scrollToSarees()" class="bottom-nav-item" role="button">
+    <i class="fa-solid fa-store"></i>
+    <span>Sarees</span>
+  </a>
+  <a (click)="toggleWishlist()" class="bottom-nav-item" [class.active]="isWishlistOpen()" role="button" style="position: relative;">
+    <i class="fa-solid fa-heart"></i>
+    <span>Wishlist</span>
+    <span *ngIf="wishlistService.count() > 0" class="badge" style="position: absolute; top: 4px; right: 20%; padding: 2px 5px; font-size: 0.65rem; min-width: 15px; height: 15px; top: -2px; right: 15px;">{{ wishlistService.count() }}</span>
+  </a>
+  <a routerLink="/admin" routerLinkActive="active" class="bottom-nav-item">
+    <i class="fa-solid fa-user-gear"></i>
+    <span>Admin</span>
+  </a>
+</nav>
