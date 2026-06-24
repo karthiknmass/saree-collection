@@ -22,6 +22,20 @@
       </nav>
 
       <div class="nav-actions">
+        <!-- Currency Selector -->
+        <div class="currency-selector-wrapper">
+          <i class="fa-solid fa-globe globe-icon"></i>
+          <select 
+            [value]="currencyService.currentCurrency().code"
+            (change)="currencyService.setCurrency($any($event.target).value)"
+            class="currency-select"
+            aria-label="Select Currency">
+            <option *ngFor="let cur of currencyService.supportedCurrencies" [value]="cur.code">
+              {{ cur.code }}
+            </option>
+          </select>
+        </div>
+
         <!-- Wishlist Button -->
         <button (click)="toggleWishlist()" class="wishlist-btn" aria-label="Open Wishlist">
           <i class="fa-solid fa-heart"></i>
@@ -96,7 +110,7 @@
              class="cart-item-img">
         <div class="cart-item-details">
           <h4 class="cart-item-title">{{ item.name }}</h4>
-          <p class="cart-item-price">₹{{ item.price.toLocaleString('en-IN') }}</p>
+          <p class="cart-item-price">{{ currencyService.format(item.price) }}</p>
           
           <div class="cart-item-actions">
             <div class="quantity-selector">
@@ -120,7 +134,7 @@
     <div *ngIf="cartService.items().length > 0" class="cart-footer">
       <div class="cart-summary-row">
         <span>Subtotal</span>
-        <span class="cart-total-price">₹{{ cartService.total().toLocaleString('en-IN') }}</span>
+        <span class="cart-total-price">{{ currencyService.format(cartService.total()) }}</span>
       </div>
       <p class="cart-info-tax">Shipping & taxes calculated at checkout.</p>
       <button (click)="openCheckout()" class="btn btn-accent checkout-btn">
@@ -154,7 +168,7 @@
              class="cart-item-img">
         <div class="cart-item-details">
           <h4 class="cart-item-title">{{ item.name }}</h4>
-          <p class="cart-item-price">₹{{ item.price.toLocaleString('en-IN') }}</p>
+          <p class="cart-item-price">{{ currencyService.format(item.price) }}</p>
           
           <div class="cart-item-actions">
             <!-- Add to Cart (from Wishlist) -->
@@ -201,13 +215,13 @@
           <div class="summary-list">
             <div *ngFor="let item of cartService.items()" class="summary-row">
               <span>{{ item.name }} x{{ item.quantity }}</span>
-              <span>₹{{ (item.price * item.quantity).toLocaleString('en-IN') }}</span>
+              <span>{{ currencyService.format(item.price * item.quantity) }}</span>
             </div>
           </div>
           <div class="summary-divider"></div>
           <div class="summary-total">
             <span>Total Amount</span>
-            <span>₹{{ cartService.total().toLocaleString('en-IN') }}</span>
+            <span>{{ currencyService.format(cartService.total()) }}</span>
           </div>
         </div>
 
@@ -265,3 +279,14 @@
     <span>Admin</span>
   </a>
 </nav>
+
+<!-- Floating Customer Service Helpline -->
+<div class="floating-helpline">
+  <a href="https://wa.me/919999999999?text=Hello%20Shree%20Boutique!%20I%20have%20a%20question%20about%20your%20saree%20collection." 
+     target="_blank" 
+     class="helpline-btn" 
+     aria-label="Contact Customer Care Support Helpline">
+    <i class="fa-brands fa-whatsapp helpline-icon"></i>
+    <span class="helpline-text">Care Helpline</span>
+  </a>
+</div>

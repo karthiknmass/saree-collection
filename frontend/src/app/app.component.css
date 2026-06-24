@@ -176,6 +176,47 @@
   color: var(--accent-color);
 }
 
+/* Currency Selector Styling */
+.currency-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--bg-secondary);
+  border-radius: 24px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-light);
+  transition: all 0.3s ease;
+  height: 44px;
+  box-sizing: border-box;
+}
+
+.currency-selector-wrapper:hover {
+  border-color: var(--accent-color);
+  background-color: var(--border-light);
+}
+
+.globe-icon {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.currency-selector-wrapper:hover .globe-icon {
+  color: var(--accent-color);
+}
+
+.currency-select {
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--primary-color);
+  outline: none;
+  cursor: pointer;
+  padding-right: 4px;
+}
+
 /* Slide-out Shopping Cart Drawer */
 .cart-drawer-backdrop {
   position: fixed;
@@ -727,3 +768,55 @@
     padding-bottom: 64px;
   }
 }
+
+/* Floating Customer Service Helpline */
+.floating-helpline {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+}
+
+.helpline-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 20px;
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(184, 134, 11, 0.35);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.helpline-btn:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 8px 25px rgba(184, 134, 11, 0.5);
+  background: linear-gradient(135deg, #e5c158, #c99718);
+  color: #fff;
+}
+
+.helpline-icon {
+  font-size: 1.3rem;
+}
+
+@media (max-width: 768px) {
+  .floating-helpline {
+    bottom: 80px; /* Stay clear of mobile bottom navbar */
+    right: 20px;
+  }
+  
+  .helpline-btn {
+    padding: 10px 16px;
+    font-size: 0.8rem;
+  }
+}
+

@@ -2,8 +2,10 @@ import { Component, OnInit, OnDestroy, signal, inject, computed } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { SareeService, Saree } from '../../services/saree.service';
 import { CartService } from '../../services/cart.service';
+import { RecentlyViewedService } from '../../services/recently-viewed.service';
+import { CurrencyService } from '../../services/currency.service';
+import { SareeService, Saree } from '../../services/saree.service';
 
 @Component({
   selector: 'app-catalog',
@@ -15,8 +17,11 @@ import { CartService } from '../../services/cart.service';
 export class CatalogComponent implements OnInit, OnDestroy {
   private sareeService = inject(SareeService);
   private cartService = inject(CartService);
+  private recentlyViewedService = inject(RecentlyViewedService);
+  public currencyService = inject(CurrencyService);
 
   // States
+  recentlyViewedList = this.recentlyViewedService.items;
   sareesList = signal<Saree[]>([]);
   loading = signal(true);
   sortBy = signal('newest');
@@ -204,5 +209,11 @@ export class CatalogComponent implements OnInit, OnDestroy {
   getPrimaryImage(saree: Saree): string {
     const primary = saree.images.find(img => img.is_primary) || saree.images[0];
     return primary ? `http://localhost:8000${primary.image_url}` : 'assets/placeholder-saree.jpg';
+  }
+
+  getRecentlyViewedImage(item: any): string {
+    if (!item.image_url) return 'assets/placeholder-saree.jpg';
+    if (item.image_url.startsWith('assets/')) return item.image_url;
+    return `http://localhost:8000${item.image_url}`;
   }
 }

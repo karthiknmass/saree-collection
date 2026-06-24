@@ -106,7 +106,7 @@
               <div class="saree-info">
                 <h3 class="saree-name">{{ saree.name }}</h3>
                 <p class="saree-work" *ngIf="saree.work">{{ saree.work }}</p>
-                <p class="saree-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+                <p class="saree-price">{{ currencyService.format(saree.price) }}</p>
               </div>
             </a>
             <div class="card-actions">
@@ -167,7 +167,7 @@
               <div class="saree-info">
                 <h3 class="saree-name">{{ saree.name }}</h3>
                 <p class="saree-work" *ngIf="saree.work">{{ saree.work }}</p>
-                <p class="saree-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+                <p class="saree-price">{{ currencyService.format(saree.price) }}</p>
               </div>
             </a>
             <div class="card-actions">
@@ -208,13 +208,50 @@
               <div class="saree-info">
                 <h3 class="saree-name">{{ saree.name }}</h3>
                 <p class="saree-work" *ngIf="saree.work">{{ saree.work }}</p>
-                <p class="saree-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+                <p class="saree-price">{{ currencyService.format(saree.price) }}</p>
               </div>
             </a>
             <div class="card-actions">
               <button (click)="addToCart(saree, $event)" class="btn btn-secondary card-btn-cart"><i class="fa-solid fa-cart-plus"></i> Add</button>
               <button (click)="buyNow(saree, $event)" class="btn btn-accent card-btn-buy">Buy Now</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recently Viewed Section -->
+    <section class="carousel-section" *ngIf="recentlyViewedList().length > 0" style="margin-top: 56px; margin-bottom: 56px;">
+      <div class="section-header-row">
+        <div class="section-title-group">
+          <h2>Recently Viewed</h2>
+          <p class="section-subtitle">Sarees you've recently browsed</p>
+        </div>
+        <div class="carousel-nav-buttons">
+          <button class="btn btn-nav-circle" (click)="scrollCarousel('recently-viewed-track', 'left')" aria-label="Slide Left">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="btn btn-nav-circle" (click)="scrollCarousel('recently-viewed-track', 'right')" aria-label="Slide Right">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="carousel-outer">
+        <div class="carousel-track" id="recently-viewed-track">
+          <div *ngFor="let item of recentlyViewedList()" class="saree-slide-card">
+            <a [routerLink]="['/saree', item.id]" class="card-link">
+              <div class="image-wrapper">
+                <div class="image-shimmer-bg shimmer-loader"></div>
+                <img [src]="getRecentlyViewedImage(item)" [alt]="item.name" loading="lazy" (error)="onImageError($event)" class="saree-img">
+                <div class="quality-badge" *ngIf="item.quality">{{ item.quality }}</div>
+              </div>
+              <div class="saree-info">
+                <h3 class="saree-name">{{ item.name }}</h3>
+                <p class="saree-work" *ngIf="item.work">{{ item.work }}</p>
+                <p class="saree-price">{{ currencyService.format(item.price) }}</p>
+              </div>
+            </a>
           </div>
         </div>
       </div>
@@ -301,6 +338,8 @@
           <option value="newest">Newest Arrivals</option>
           <option value="price_low">Price: Low to High</option>
           <option value="price_high">Price: High to Low</option>
+          <option value="name_asc">Alphabetical: A to Z</option>
+          <option value="name_desc">Alphabetical: Z to A</option>
         </select>
       </div>
     </div>
@@ -341,7 +380,7 @@
           <div class="saree-info">
             <h3 class="saree-name">{{ saree.name }}</h3>
             <p class="saree-work" *ngIf="saree.work">{{ saree.work }}</p>
-            <p class="saree-price">₹{{ saree.price.toLocaleString('en-IN') }}</p>
+            <p class="saree-price">{{ currencyService.format(saree.price) }}</p>
           </div>
         </a>
 

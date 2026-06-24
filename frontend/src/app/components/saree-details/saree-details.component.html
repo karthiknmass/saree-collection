@@ -56,7 +56,7 @@
         <span class="rating-text">⭐ No reviews yet. Be the first to review!</span>
       </div>
 
-      <p class="info-price" style="margin-top: 10px;">₹{{ saree()!.price.toLocaleString('en-IN') }}</p>
+      <p class="info-price" style="margin-top: 10px;">{{ currencyService.format(saree()!.price) }}</p>
       
       <div class="info-description" *ngIf="saree()!.description">
         <p>{{ saree()!.description }}</p>
@@ -222,7 +222,36 @@
           <div class="saree-info">
             <h3 class="saree-name">{{ rel.name }}</h3>
             <p class="saree-work" *ngIf="rel.work">{{ rel.work }}</p>
-            <p class="saree-price">₹{{ rel.price.toLocaleString('en-IN') }}</p>
+            <p class="saree-price">{{ currencyService.format(rel.price) }}</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recently Viewed Section -->
+  <section class="related-section recently-viewed-section" *ngIf="!loading() && recentlyViewedFiltered().length > 0" style="margin-top: 56px;">
+    <div class="related-header">
+      <h2>Recently Viewed</h2>
+      <p>Sarees you've recently browsed</p>
+    </div>
+    
+    <div class="grid-cols-4 related-grid">
+      <div *ngFor="let item of recentlyViewedFiltered()" class="saree-card">
+        <a [routerLink]="['/saree', item.id]" class="card-link">
+          <div class="image-wrapper">
+            <div class="image-shimmer-bg shimmer-loader"></div>
+            <img [src]="getRecentlyViewedImage(item)" 
+                 [alt]="item.name" 
+                 loading="lazy" 
+                 (error)="onImageError($event)"
+                 class="saree-img">
+            <div class="quality-badge" *ngIf="item.quality">{{ item.quality }}</div>
+          </div>
+          <div class="saree-info">
+            <h3 class="saree-name">{{ item.name }}</h3>
+            <p class="saree-work" *ngIf="item.work">{{ item.work }}</p>
+            <p class="saree-price">{{ currencyService.format(item.price) }}</p>
           </div>
         </a>
       </div>

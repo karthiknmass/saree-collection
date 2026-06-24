@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { SareeService, Saree } from '../../services/saree.service';
 import { CartService } from '../../services/cart.service';
 import { WishlistService } from '../../services/wishlist.service';
+import { RecentlyViewedService } from '../../services/recently-viewed.service';
+import { CurrencyService } from '../../services/currency.service';
 
 @Component({
   selector: 'app-saree-details',
@@ -18,12 +20,21 @@ export class SareeDetailsComponent implements OnInit {
   private sareeService = inject(SareeService);
   private cartService = inject(CartService);
   private wishlistService = inject(WishlistService);
+  private recentlyViewedService = inject(RecentlyViewedService);
+  public currencyService = inject(CurrencyService);
 
   // States
   saree = signal<Saree | null>(null);
   loading = signal(true);
   activeImageIndex = signal(0);
   relatedSareesList = signal<Saree[]>([]);
+
+  recentlyViewedFiltered = computed(() => {
+    const current = this.saree();
+    const items = this.recentlyViewedService.items();
+    if (!current) return items;
+    return items.filter(item => item.id !== current.id);
+  });
 
   ngOnInit() {
     // Get ID from route params
@@ -41,6 +52,7 @@ export class SareeDetailsComponent implements OnInit {
     this.sareeService.getSaree(id).subscribe({
       next: (data) => {
         this.saree.set(data);
+        this.recentlyViewedService.addProduct(data);
         this.activeImageIndex.set(0);
         this.fetchRelatedSarees(data);
       },
@@ -104,6 +116,12 @@ export class SareeDetailsComponent implements OnInit {
   getPrimaryImage(saree: Saree): string {
     const primary = saree.images.find(img => img.is_primary) || saree.images[0];
     return primary ? `http://localhost:8000${primary.image_url}` : 'assets/placeholder-saree.jpg';
+  }
+
+  getRecentlyViewedImage(item: any): string {
+    if (!item.image_url) return 'assets/placeholder-saree.jpg';
+    if (item.image_url.startsWith('assets/')) return item.image_url;
+    return `http://localhost:8000${item.image_url}`;
   }
 
   addToCart() {

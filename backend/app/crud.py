@@ -13,6 +13,10 @@ def get_sarees(db: Session, skip: int = 0, limit: int = 12, sort_by: str = "newe
         query = query.order_by(models.Saree.price)
     elif sort_by == "price_high":
         query = query.order_by(desc(models.Saree.price))
+    elif sort_by == "name_asc":
+        query = query.order_by(models.Saree.name)
+    elif sort_by == "name_desc":
+        query = query.order_by(desc(models.Saree.name))
     else:
         query = query.order_by(desc(models.Saree.created_at))
     

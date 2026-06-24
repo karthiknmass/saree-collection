@@ -6,6 +6,7 @@ import { CartService } from './services/cart.service';
 import { AuthService } from './services/auth.service';
 import { SareeService } from './services/saree.service';
 import { WishlistService } from './services/wishlist.service';
+import { CurrencyService } from './services/currency.service';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +19,7 @@ export class AppComponent {
   cartService = inject(CartService);
   authService = inject(AuthService);
   wishlistService = inject(WishlistService);
+  currencyService = inject(CurrencyService);
   private sareeService = inject(SareeService);
   private router = inject(Router);
 
