@@ -1,4 +1,4 @@
-import { Component, signal, inject, effect } from '@angular/core';
+import { Component, signal, inject, effect, HostListener } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +22,40 @@ export class AppComponent {
   currencyService = inject(CurrencyService);
   private sareeService = inject(SareeService);
   private router = inject(Router);
+
+  // Currency Selector Open State
+  isCurrencyDropdownOpen = signal(false);
+
+  toggleCurrencyDropdown(event: Event) {
+    event.stopPropagation();
+    this.isCurrencyDropdownOpen.update(v => !v);
+  }
+
+  selectCurrency(code: string) {
+    this.currencyService.setCurrency(code);
+    this.isCurrencyDropdownOpen.set(false);
+  }
+
+  getFlagEmoji(code: string): string {
+    const flags: { [key: string]: string } = {
+      'INR': '🇮🇳',
+      'USD': '🇺🇸',
+      'EUR': '🇪🇺',
+      'GBP': '🇬🇧',
+      'AUD': '🇦🇺',
+      'CAD': '🇨🇦',
+      'AED': '🇦🇪'
+    };
+    return flags[code] || '🌐';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.currency-selector-container')) {
+      this.isCurrencyDropdownOpen.set(false);
+    }
+  }
 
   // Cart Drawer open/close state
   isCartOpen = signal(false);

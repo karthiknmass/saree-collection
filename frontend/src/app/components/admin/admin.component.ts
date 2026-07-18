@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SareeService, Saree } from '../../services/saree.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-admin',
@@ -12,6 +13,7 @@ import { SareeService, Saree } from '../../services/saree.service';
 })
 export class AdminComponent implements OnInit, OnDestroy {
   private sareeService = inject(SareeService);
+  private authService = inject(AuthService);
 
   // Tab State
   activeTab = signal<'inventory' | 'orders'>('inventory');
@@ -490,6 +492,12 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   closeAlert() {
     this.activeAlert.set(null);
+  }
+
+  onLogout() {
+    this.authService.logout().subscribe({
+      error: (err) => console.error('Logout failed:', err)
+    });
   }
 
   ngOnDestroy() {

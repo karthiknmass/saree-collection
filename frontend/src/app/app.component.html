@@ -16,24 +16,38 @@
 
       <nav class="nav-links">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">Collection</a>
-        
-        <!-- Admin link is always visible for development -->
-        <a routerLink="/admin" routerLinkActive="active" class="nav-item admin-badge">Admin Portal</a>
       </nav>
 
       <div class="nav-actions">
-        <!-- Currency Selector -->
-        <div class="currency-selector-wrapper">
-          <i class="fa-solid fa-globe globe-icon"></i>
-          <select 
-            [value]="currencyService.currentCurrency().code"
-            (change)="currencyService.setCurrency($any($event.target).value)"
-            class="currency-select"
-            aria-label="Select Currency">
-            <option *ngFor="let cur of currencyService.supportedCurrencies" [value]="cur.code">
-              {{ cur.code }}
-            </option>
-          </select>
+        <!-- Elegant Custom Currency Selector -->
+        <div class="currency-selector-container">
+          <button (click)="toggleCurrencyDropdown($event)" class="currency-trigger-btn" [class.active]="isCurrencyDropdownOpen()" aria-label="Toggle currency selector">
+            <i class="fa-solid fa-globe globe-icon"></i>
+            <span class="active-currency-code">{{ currencyService.currentCurrency().code }}</span>
+            <i class="fa-solid fa-chevron-down chevron-icon" [class.rotate]="isCurrencyDropdownOpen()"></i>
+          </button>
+          
+          <!-- Dropdown Panel -->
+          <div class="currency-dropdown-panel" *ngIf="isCurrencyDropdownOpen()">
+            <div class="currency-dropdown-header">
+              Select Currency
+            </div>
+            <div class="currency-options-list">
+              <button 
+                *ngFor="let cur of currencyService.supportedCurrencies"
+                (click)="selectCurrency(cur.code)"
+                class="currency-option-item"
+                [class.selected]="currencyService.currentCurrency().code === cur.code">
+                <span class="currency-flag-placeholder">{{ getFlagEmoji(cur.code) }}</span>
+                <div class="currency-info-box">
+                  <span class="currency-option-code">{{ cur.code }}</span>
+                  <span class="currency-option-name">{{ cur.name }}</span>
+                </div>
+                <span class="currency-option-symbol">{{ cur.symbol }}</span>
+                <i class="fa-solid fa-circle-check select-check-icon" *ngIf="currencyService.currentCurrency().code === cur.code"></i>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Wishlist Button -->
@@ -46,6 +60,11 @@
           <i class="fa-solid fa-bag-shopping"></i>
           <span *ngIf="cartService.count() > 0" class="badge">{{ cartService.count() }}</span>
         </button>
+
+        <!-- Subtle Admin Login Button -->
+        <a routerLink="/admin" class="admin-login-btn" aria-label="Admin Portal">
+          <i class="fa-solid fa-user-gear"></i>
+        </a>
       </div>
     </div>
   </header>
@@ -273,10 +292,6 @@
     <i class="fa-solid fa-heart"></i>
     <span>Wishlist</span>
     <span *ngIf="wishlistService.count() > 0" class="badge" style="position: absolute; top: 4px; right: 20%; padding: 2px 5px; font-size: 0.65rem; min-width: 15px; height: 15px; top: -2px; right: 15px;">{{ wishlistService.count() }}</span>
-  </a>
-  <a routerLink="/admin" routerLinkActive="active" class="bottom-nav-item">
-    <i class="fa-solid fa-user-gear"></i>
-    <span>Admin</span>
   </a>
 </nav>
 

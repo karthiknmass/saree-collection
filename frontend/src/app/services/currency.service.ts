@@ -26,13 +26,67 @@ export class CurrencyService {
   readonly currentCurrency = this.currencySignal.asReadonly();
   readonly supportedCurrencies = SUPPORTED_CURRENCIES;
 
+  constructor() {
+    this.detectCurrencyAsync();
+  }
+
   private loadCurrency(): CurrencyInfo {
     const storedCode = localStorage.getItem('selected_currency');
     if (storedCode) {
       const found = SUPPORTED_CURRENCIES.find(c => c.code === storedCode);
       if (found) return found;
     }
-    return SUPPORTED_CURRENCIES[0]; // Default to INR
+    // If no manual choice, run instant local heuristic detection
+    const detectedCode = this.detectLocalCurrency();
+    const foundDetected = SUPPORTED_CURRENCIES.find(c => c.code === detectedCode);
+    return foundDetected || SUPPORTED_CURRENCIES[0];
+  }
+
+  private detectLocalCurrency(): string {
+    const lang = navigator.language || (navigator.languages && navigator.languages[0]) || '';
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    
+    const tz = timezone.toLowerCase();
+    const ln = lang.toLowerCase();
+    
+    if (tz.includes('kolkata') || tz.includes('calcutta') || ln.includes('-in') || ln === 'hi') {
+      return 'INR';
+    } else if (tz.includes('london') || ln.includes('-gb')) {
+      return 'GBP';
+    } else if (tz.includes('europe') || ln.includes('-de') || ln.includes('-fr') || ln.includes('-it') || ln.includes('-es') || ln.includes('-nl')) {
+      return 'EUR';
+    } else if (tz.includes('australia') || tz.includes('sydney') || tz.includes('melbourne') || ln.includes('-au')) {
+      return 'AUD';
+    } else if (tz.includes('toronto') || tz.includes('vancouver') || ln.includes('-ca')) {
+      return 'CAD';
+    } else if (tz.includes('dubai') || tz.includes('abu_dhabi') || ln.includes('-ae')) {
+      return 'AED';
+    } else if (tz.includes('america') || tz.includes('us/') || ln.includes('-us')) {
+      return 'USD';
+    }
+    
+    return 'USD'; // default
+  }
+
+  private detectCurrencyAsync() {
+    // Only fetch if the user hasn't explicitly set a preference
+    if (localStorage.getItem('selected_currency')) {
+      return;
+    }
+    
+    fetch('https://freeipapi.com/api/json')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.currencyCode) {
+          const found = SUPPORTED_CURRENCIES.find(c => c.code === data.currencyCode);
+          if (found) {
+            this.currencySignal.set(found);
+          }
+        }
+      })
+      .catch(err => {
+        console.warn('IP geotargeting failed, using browser locale:', err);
+      });
   }
 
   setCurrency(code: string) {

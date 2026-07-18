@@ -15,9 +15,13 @@
 }
 
 .admin-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 40px;
   border-bottom: 1px solid var(--border-light);
   padding-bottom: 20px;
+  gap: 20px;
 }
 
 .admin-title-row h1 {
@@ -28,6 +32,30 @@
 .admin-title-row p {
   color: var(--text-secondary);
   font-size: 1.05rem;
+}
+
+.logout-btn {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.logout-btn:hover {
+  background-color: #fcebeb; /* Soft red tint */
+  border-color: #e74c3c;
+  color: #e74c3c;
 }
 
 .admin-layout {
@@ -1144,6 +1172,9 @@
   
   .admin-title-row {
     margin-bottom: 24px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
   
   .admin-title-row h1 {
